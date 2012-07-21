@@ -4,7 +4,7 @@
 # project-specific macros
 # extension of the executable-file is modifiable(.exe .out ...)
 BASEDIR = .
-TARGET := ../lib/libmruby-cfunc.a
+TARGET := $(BASEDIR)/../lib/libmruby-cfunc.a
 MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/mrb/*.rb))
 LIBR := $(BASEDIR)/../vendors/lib/libmruby.a \
 	$(BASEDIR)/../lib/libmruby-cfunc.a
@@ -15,7 +15,7 @@ OBJ1 := $(patsubst %.c,%.o,$(filter-out $(EXCEPT1),$(wildcard $(BASEDIR)/*.c)))
 OBJMRB := $(patsubst %.c,%.o,$(MRBCSRC))
 OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
 
-MRBC := ../vendors/bin/mrbc
+MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
 
 # libraries, includes
