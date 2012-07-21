@@ -1,13 +1,21 @@
 # https://help.github.com/articles/ignoring-files
 
+# 3rd party #
+#############
+vendors
+
 # Compiled source #
 ###################
+tmp
 *.com
 *.class
 *.dll
 *.exe
 *.o
 *.so
+*.d
+*.dSYM
+*.a
 
 # Packages #
 ############
