@@ -34,7 +34,7 @@ const struct mrb_data_type cfunc_struct_data_type = {
 static mrb_value
 cfunc_type_ffi_struct_c_to_mrb(mrb_state *mrb, void *p)
 {
-    // todo どうやってmrb_Structを作る？
+    // todo
     return mrb_nil_value();
 }
 
@@ -83,9 +83,6 @@ init_cfunc_struct(mrb_state *mrb, struct RClass* module)
 {
     struct RClass *struct_class = mrb_define_class_under(mrb, module, "Struct", mrb->object_class);
     mrb_ud(mrb)->cfunc_struct_class = struct_class;
-
-    //struct RClass *struct2_class = mrb_define_class(mrb, "Struct2", mrb->object_class);
-
-
+    
     mrb_define_class_method(mrb, struct_class, "define_struct", cfunc_struct_define_struct, ARGS_REQ(2));
 }

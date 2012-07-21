@@ -26,7 +26,7 @@ cfunc_pointer_destructor(mrb_state *mrb, void *p)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data *)p;
     if(data->autofree) {
-        // free(get_cfunc_pointer_data(data));
+        free(get_cfunc_pointer_data(data));
     }
     free(p);
 }
@@ -70,7 +70,6 @@ cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
     mrb_get_args(mrb, "i", &alloc_size);
     
     set_cfunc_pointer_data(data, malloc(alloc_size));
-    //data->size = alloc_size;
     
     return mrb_obj_value(Data_Wrap_Struct(mrb, mrb_class_ptr(klass), &cfunc_pointer_data_type, data));
 }

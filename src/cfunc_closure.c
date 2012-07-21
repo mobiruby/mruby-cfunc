@@ -25,14 +25,13 @@ static void
 cfunc_closure_destructor(mrb_state *mrb, void *p_)
 {
     struct cfunc_closure_data *p = p_;
-    /* todo
     if (p->closure) {
         ffi_closure_free(p->closure);
     }
     free(p->closure);
     free(p->arg_types);
     free(p->arg_ffi_types);
-    free(p->cif);*/
+    free(p->cif);
     free(p);
 }
 
@@ -103,7 +102,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 
     mrb_value *ary = malloc(sizeof(mrb_value) * data->argc);
     for (int i = 0; i < data->argc; ++i) {
-        // TODO: too much consume memory
+        // TODO: I felt too much consume memory
         void *p = malloc(data->arg_ffi_types[i]->size);
         memcpy(p, args[i], data->arg_ffi_types[i]->size);
         mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
@@ -122,7 +121,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
     else {
         mrb_p(data->mrb, mrb_obj_value(data->mrb->exc));
     }
-    //free(ary);
+    free(ary);
 
     mrb_value ret_pointer = cfunc_pointer_new_with_pointer(data->mrb, ret, false);
     mrb_funcall(data->mrb, data->return_type, "set", 2, ret_pointer, result);
@@ -162,7 +161,7 @@ cfunc_closure_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data 
 static void
 cfunc_closure_ffi_data_destructor(mrb_state *mrb, void *p_)
 {
-    // ToDo: when *p_ was local scope variant?
+    // ToDo:
 };
 
 
