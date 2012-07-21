@@ -6,9 +6,6 @@
 BASEDIR = .
 TARGET := $(BASEDIR)/../lib/libmruby-cfunc.a
 MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/mrb/*.rb))
-LIBR := $(BASEDIR)/../vendors/lib/libmruby.a \
-	$(BASEDIR)/../lib/libmruby-cfunc.a
-
 EXCEPT1 := $(MRBCSRC)
 
 OBJ1 := $(patsubst %.c,%.o,$(filter-out $(EXCEPT1),$(wildcard $(BASEDIR)/*.c)))
@@ -23,7 +20,7 @@ INCLUDES = -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../vendors/include
 
 # libffi
 LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --cflags)
-LIBFFI_LIBS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --libs)
+LIBFFI_LIB = $(BASEDIR)/../vendors/lib/libffi.a
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -56,8 +53,12 @@ export CAT := cat
 all : $(TARGET)
 
 # executable constructed using linker from object files
-$(TARGET) : $(OBJS) $(OBJMRB)
-	$(AR) r $@ $(OBJS) $(OBJMRB)
+$(TARGET) : $(OBJS) $(OBJMRB) $(LIBFFI_LIB)
+	rm -Rf $(BASEDIR)/../tmp/libffi_o
+	mkdir -p $(BASEDIR)/../tmp/libffi_o
+	cd $(BASEDIR)/../tmp/libffi_o && ar x ../../vendors/lib/libffi.a
+	$(AR) r $@ $(OBJS) $(OBJMRB) $(BASEDIR)/../tmp/libffi_o/*.o
+	rm -Rf $(BASEDIR)/../tmp/libffi_o
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
