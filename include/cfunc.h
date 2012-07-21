@@ -31,8 +31,6 @@
 #include "mruby.h"
 
 struct mrb_state_ud {
-    struct RClass *cfunc_module;
-    
     struct RClass *cfunc_type_class;
     struct RClass *cfunc_void_class;
     struct RClass *cfunc_uint8_class;
