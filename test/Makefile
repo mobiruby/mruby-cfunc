@@ -19,6 +19,7 @@ MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
 
 # libraries, includes
+LIBS = -lm -ldl
 INCLUDES = -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../vendors/include
 
 ifeq ($(strip $(COMPILE_MODE)),)
@@ -27,11 +28,11 @@ ifeq ($(strip $(COMPILE_MODE)),)
 endif
 
 ifeq ($(COMPILE_MODE),debug)
-  CFLAGS = -g -O3
+  CFLAGS = -g -O3 -rdynamic
 else ifeq ($(COMPILE_MODE),release)
-  CFLAGS = -O3
+  CFLAGS = -O3 -rdynamic
 else ifeq ($(COMPILE_MODE),small)
-  CFLAGS = -Os
+  CFLAGS = -Os -rdynamic
 endif
 
 ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS)
@@ -57,7 +58,7 @@ run : $(TARGET)
 
 # executable constructed using linker from object files
 $(TARGET) : $(OBJS) $(OBJMRB) $(LIBR)
-	$(LL) -o $@ $(CFLAGS) $^
+	$(LL) -o $@ $(CFLAGS) $^ $(LIBS)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
