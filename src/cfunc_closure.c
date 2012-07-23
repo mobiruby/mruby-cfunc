@@ -28,7 +28,6 @@ cfunc_closure_destructor(mrb_state *mrb, void *p_)
     if (p->closure) {
         ffi_closure_free(p->closure);
     }
-    free(p->closure);
     free(p->arg_types);
     free(p->arg_ffi_types);
     free(p->cif);
