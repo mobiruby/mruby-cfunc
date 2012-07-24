@@ -37,6 +37,8 @@ endif
 
 ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS)
 
+LDFLAGS = -Wl,-allow_stack_execute
+
 
 ##############################
 # internal variables
@@ -58,7 +60,7 @@ run : $(TARGET)
 
 # executable constructed using linker from object files
 $(TARGET) : $(OBJS) $(OBJMRB) $(LIBR)
-	$(LL) -o $@ $(CFLAGS) $^ $(LIBS)
+	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LIBS)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
