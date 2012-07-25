@@ -12,7 +12,7 @@
 #include "ffi.h"
 
 
-#define MOBI_C_TYPE_HEADER \
+#define CFUNC_TYPE_HEADER \
     union { \
         void *_pointer; \
         int8_t _sint8; \
@@ -30,7 +30,7 @@
     uint8_t autofree: 1;
 
 struct cfunc_type_data {
-    MOBI_C_TYPE_HEADER
+    CFUNC_TYPE_HEADER
 };
 
 struct mrb_ffi_type {

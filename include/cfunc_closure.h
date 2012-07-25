@@ -16,7 +16,7 @@
 
 
 struct cfunc_closure_data {
-    MOBI_C_TYPE_HEADER
+    CFUNC_TYPE_HEADER
 
 	mrb_state *mrb;
 

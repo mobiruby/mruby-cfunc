@@ -48,7 +48,7 @@ class String
         CFunc::Pointer.refer(ptr).to_s
     end
 
-    # defined to_pointer in mobi_c_type.c
+    # defined to_pointer in cfunc_type.c
 end
 
 module CFunc
