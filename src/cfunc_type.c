@@ -153,7 +153,7 @@ cfunc_type_get_value(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_type_set_value(mrb_state *mrb, mrb_value self)
 {
-    mrb_value pointer, val;
+    mrb_value val;
     mrb_get_args(mrb, "o", &val);
 
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);

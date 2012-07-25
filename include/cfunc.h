@@ -30,30 +30,37 @@
 
 #include "mruby.h"
 
-struct mrb_state_ud {
-    struct RClass *cfunc_type_class;
-    struct RClass *cfunc_void_class;
-    struct RClass *cfunc_uint8_class;
-    struct RClass *cfunc_sint8_class;
-    struct RClass *cfunc_uint16_class;
-    struct RClass *cfunc_sint16_class;
-    struct RClass *cfunc_uint32_class;
-    struct RClass *cfunc_sint32_class;
-    struct RClass *cfunc_uint64_class;
-    struct RClass *cfunc_sint64_class;
-    struct RClass *cfunc_float_class;
-    struct RClass *cfunc_double_class;
-    struct RClass *cfunc_pointer_class;
-    struct RClass *cfunc_struct_class;
+#define CFUNC_MRB_STATE_UD_FIELDS \
+    struct RClass *cfunc_type_class; \
+    struct RClass *cfunc_void_class; \
+    struct RClass *cfunc_uint8_class; \
+    struct RClass *cfunc_sint8_class; \
+    struct RClass *cfunc_uint16_class; \
+    struct RClass *cfunc_sint16_class; \
+    struct RClass *cfunc_uint32_class; \
+    struct RClass *cfunc_sint32_class; \
+    struct RClass *cfunc_uint64_class; \
+    struct RClass *cfunc_sint64_class; \
+    struct RClass *cfunc_float_class; \
+    struct RClass *cfunc_double_class; \
+    struct RClass *cfunc_pointer_class; \
+    struct RClass *cfunc_struct_class; \
     struct RClass *cfunc_closure_class;
+
+
+#ifndef CFUNC_MRB_STATE_UD
+#define CFUNC_MRB_STATE_UD struct cfunc_mrb_state_ud 
+struct cfunc_mrb_state_ud {
+    CFUNC_MRB_STATE_UD_FIELDS
 };
+#endif
 
 void init_cfunc_module(mrb_state *mrb);
 
-static inline struct mrb_state_ud*
+static inline CFUNC_MRB_STATE_UD*
 mrb_ud(mrb_state* mrb)
 {
-  return (struct mrb_state_ud *)(mrb->ud);
+  return (CFUNC_MRB_STATE_UD *)(mrb->ud);
 }
 
 #endif
