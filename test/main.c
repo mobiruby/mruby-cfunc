@@ -5,6 +5,10 @@
 #include "mruby/proc.h"
 #include "mruby/compile.h"
 
+struct mrb_state_ud {
+    struct cfunc_state cfunc_state;
+};
+
 
 void
 init_unittest(mrb_state *mrb);
@@ -16,7 +20,9 @@ init_cfunc_test(mrb_state *mrb);
 int main(int argc, char *argv[])
 {
     mrb_state *mrb = mrb_open();
+    mrb->ud = malloc(sizeof(struct mrb_state_ud));
 
+    cfunc_state_offset = cfunc_offsetof(struct mrb_state_ud, cfunc_state);
     init_cfunc_module(mrb);
 
     init_unittest(mrb);

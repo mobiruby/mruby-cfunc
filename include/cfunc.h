@@ -30,37 +30,52 @@
 
 #include "mruby.h"
 
-#define CFUNC_MRB_STATE_UD_FIELDS \
-    struct RClass *cfunc_type_class; \
-    struct RClass *cfunc_void_class; \
-    struct RClass *cfunc_uint8_class; \
-    struct RClass *cfunc_sint8_class; \
-    struct RClass *cfunc_uint16_class; \
-    struct RClass *cfunc_sint16_class; \
-    struct RClass *cfunc_uint32_class; \
-    struct RClass *cfunc_sint32_class; \
-    struct RClass *cfunc_uint64_class; \
-    struct RClass *cfunc_sint64_class; \
-    struct RClass *cfunc_float_class; \
-    struct RClass *cfunc_double_class; \
-    struct RClass *cfunc_pointer_class; \
-    struct RClass *cfunc_struct_class; \
+struct cfunc_state {
+    struct RClass *cfunc_type_class;
+    struct RClass *cfunc_void_class;
+    struct RClass *cfunc_uint8_class;
+    struct RClass *cfunc_sint8_class;
+    struct RClass *cfunc_uint16_class;
+    struct RClass *cfunc_sint16_class;
+    struct RClass *cfunc_uint32_class;
+    struct RClass *cfunc_sint32_class;
+    struct RClass *cfunc_uint64_class;
+    struct RClass *cfunc_sint64_class;
+    struct RClass *cfunc_float_class;
+    struct RClass *cfunc_double_class;
+    struct RClass *cfunc_pointer_class;
+    struct RClass *cfunc_struct_class;
     struct RClass *cfunc_closure_class;
-
-
-#ifndef CFUNC_MRB_STATE_UD
-#define CFUNC_MRB_STATE_UD struct cfunc_mrb_state_ud 
-struct cfunc_mrb_state_ud {
-    CFUNC_MRB_STATE_UD_FIELDS
 };
-#endif
 
 void init_cfunc_module(mrb_state *mrb);
 
-static inline CFUNC_MRB_STATE_UD*
+/* offset of cfunc_state in mrb->ud */
+extern size_t cfunc_state_offset;
+
+/* service function for setting cfunc_state_offset */
+#define cfunc_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
+/*
+example:
+
+struct mrb_state_ud {
+    struct cfunc_state cfunc_state;
+};
+
+cfunc_state_offset = cfunc_offsetof(struct mrb_state_ud, cfunc_state);
+
+mrb_state *mrb = mrb_open();
+mrb->ud = malloc(sizeof(struct mrb_state_ud));
+
+init_cfunc_module(mrb);
+*/
+
+
+static inline struct cfunc_state *
 mrb_ud(mrb_state* mrb)
 {
-  return (CFUNC_MRB_STATE_UD *)(mrb->ud);
+  return (struct cfunc_state *)(mrb->ud + cfunc_state_offset);
 }
 
 #endif
