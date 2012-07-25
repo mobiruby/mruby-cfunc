@@ -4,7 +4,6 @@
 # compiler, linker (gcc), archiver, parser generator
 export CC = gcc
 export LL = gcc
-export AR = ar
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -19,20 +18,24 @@ else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os
 endif
 
-LIBFFI_CFLAGS = $(shell pkg-config ./vendors/lib/pkgconfig/libffi.pc --cflags)
+BASEDIR = $(shell pwd)
+INCLUDES = -I$(BASEDIR)/include
 
-ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(LIBFFI_CFLAGS)
+MRUBY_CFLAGS = -I$(BASEDIR)/vendors/include
+MRUBY_LIBS = -L$(BASEDIR)/vendors/lib -lmruby
+
+LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/vendors/lib/pkgconfig/libffi.pc --cflags)
+LIBFFI_LIBS = $(shell pkg-config $(BASEDIR)/vendors/lib/pkgconfig/libffi.pc --libs)
+
+ALL_CFLAGS = $(CFLAGS) $(INCLUDES) $(MRUBY_CFLAGS)
 ifeq ($(OS),Windows_NT)
-  MAKE_FLAGS = --no-print-directory CC=$(CC) LL=$(LL) ALL_CFLAGS='$(ALL_CFLAGS)'
+  MAKE_FLAGS = --no-print-directory CC=$(CC) LL=$(LL) CFLAGS='$(ALL_CFLAGS)' LIBFFI_CFLAGS='$(LIBFFI_CFLAGS)' LIBFFI_LIBS='$(LIBFFI_LIBS)' MRUBY_CFLAGS='$(MRUBY_CFLAGS)' MRUBY_LIBS='$(MRUBY_LIBS)'
 else
-  MAKE_FLAGS = --no-print-directory CC='$(CC)' LL='$(LL)' ALL_CFLAGS='$(ALL_CFLAGS)'
+  MAKE_FLAGS = --no-print-directory CC='$(CC)' LL='$(LL)' CFLAGS='$(ALL_CFLAGS)' LIBFFI_CFLAGS='$(LIBFFI_CFLAGS)' LIBFFI_LIBS='$(LIBFFI_LIBS)' MRUBY_CFLAGS='$(MRUBY_CFLAGS)' MRUBY_LIBS='$(MRUBY_LIBS)'
 endif
 
 ##############################
 # internal variables
-
-export MSG_BEGIN = @for line in
-export MSG_END = ; do echo "$$line"; done
 
 export CP := cp
 export RM_F := rm -f

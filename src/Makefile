@@ -14,13 +14,12 @@ OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
 
 MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
-
 # libraries, includes
-INCLUDES = -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../vendors/include
+INCLUDES = 
 
 # libffi
-LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --cflags)
-LIBFFI_LIB = $(BASEDIR)/../vendors/lib/libffi.a
+LIBFFI_CFLAGS = $(shell pkg-config libffi --cflags)
+
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -35,7 +34,7 @@ else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os
 endif
 
-ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(LIBFFI_CFLAGS)
+ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(MRUBY_CFLAGS) $(LIBFFI_CFLAGS)
 
 
 ##############################
@@ -65,7 +64,6 @@ $(OBJMRB) : %.o : %.rb
 
 # objects compiled from source
 $(OBJS) : %.o : %.c
-	echo $(LIBFFI_CFLAGS)
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $< -o $@
 
 # clean up

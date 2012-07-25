@@ -6,8 +6,7 @@
 BASEDIR = .
 TARGET := $(BASEDIR)/cfunc_test
 MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/mrb/*.rb))
-LIBR := $(BASEDIR)/../vendors/lib/libmruby.a \
-	$(BASEDIR)/../lib/libmruby-cfunc.a
+LIBR := $(BASEDIR)/../lib/libmruby-cfunc.a
 
 EXCEPT1 := $(MRBCSRC)
 
@@ -18,12 +17,12 @@ OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
 MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
 # libffi
-LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --cflags)
-LIBFFI_LIBS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --libs)
+LIBFFI_CFLAGS = $(shell pkg-config libffi --cflags)
+LIBFFI_LIBS = $(shell pkg-config libffi --libs)
 
 # libraries, includes
-LIBS = -lm -ldl $(LIBFFI_LIBS)
-INCLUDES = -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../vendors/include
+LIBS = -lm -ldl
+LDFLAGS = -Wl,-allow_stack_execute
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -38,9 +37,8 @@ else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os -rdynamic
 endif
 
-ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(LIBFFI_CFLAGS)
+ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(MRUBY_CFLAGS) $(LIBFFI_CFLAGS)
 
-LDFLAGS = -Wl,-allow_stack_execute
 
 
 ##############################
@@ -63,7 +61,7 @@ run : $(TARGET)
 
 # executable constructed using linker from object files
 $(TARGET) : $(OBJS) $(OBJMRB) $(LIBR)
-	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LIBS)
+	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LIBS) $(MRUBY_LIBS) $(LIBFFI_LIBS)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
