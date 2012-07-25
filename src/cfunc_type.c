@@ -301,7 +301,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
 {
     struct RClass *type_class = mrb_define_class_under(mrb, module, "Type", mrb->object_class);
     MRB_SET_INSTANCE_TT(type_class, MRB_TT_DATA);
-    mrb_ud(mrb)->cfunc_type_class = type_class;
+    cfunc_state(mrb)->cfunc_type_class = type_class;
 
     mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, ARGS_REQ(1));
     mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, ARGS_NONE());
@@ -322,15 +322,15 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     }
     
     mrb_value mod = mrb_obj_value(module);
-    mrb_ud(mrb)->cfunc_void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Void")));
-    mrb_ud(mrb)->cfunc_uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt8")));
-    mrb_ud(mrb)->cfunc_sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt8")));
-    mrb_ud(mrb)->cfunc_uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt16")));
-    mrb_ud(mrb)->cfunc_sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt16")));
-    mrb_ud(mrb)->cfunc_uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt32")));
-    mrb_ud(mrb)->cfunc_sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt32")));
-    mrb_ud(mrb)->cfunc_uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt64")));
-    mrb_ud(mrb)->cfunc_sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
-    mrb_ud(mrb)->cfunc_float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
-    mrb_ud(mrb)->cfunc_double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
+    cfunc_state(mrb)->cfunc_void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Void")));
+    cfunc_state(mrb)->cfunc_uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt8")));
+    cfunc_state(mrb)->cfunc_sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt8")));
+    cfunc_state(mrb)->cfunc_uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt16")));
+    cfunc_state(mrb)->cfunc_sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt16")));
+    cfunc_state(mrb)->cfunc_uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt32")));
+    cfunc_state(mrb)->cfunc_sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt32")));
+    cfunc_state(mrb)->cfunc_uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt64")));
+    cfunc_state(mrb)->cfunc_sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
+    cfunc_state(mrb)->cfunc_float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
+    cfunc_state(mrb)->cfunc_double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
 }

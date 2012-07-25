@@ -73,7 +73,7 @@ init_cfunc_module(mrb);
 
 
 static inline struct cfunc_state *
-mrb_ud(mrb_state* mrb)
+cfunc_state(mrb_state* mrb)
 {
   return (struct cfunc_state *)(mrb->ud + cfunc_state_offset);
 }
