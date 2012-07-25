@@ -17,9 +17,12 @@ OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
 
 MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
+# libffi
+LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --cflags)
+LIBFFI_LIBS = $(shell pkg-config $(BASEDIR)/../vendors/lib/pkgconfig/libffi.pc --libs)
 
 # libraries, includes
-LIBS = -lm -ldl
+LIBS = -lm -ldl $(LIBFFI_LIBS)
 INCLUDES = -I$(BASEDIR) -I$(BASEDIR)/../include -I$(BASEDIR)/../vendors/include
 
 ifeq ($(strip $(COMPILE_MODE)),)
@@ -35,7 +38,7 @@ else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os -rdynamic
 endif
 
-ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS)
+ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(LIBFFI_CFLAGS)
 
 LDFLAGS = -Wl,-allow_stack_execute
 

@@ -53,12 +53,8 @@ export CAT := cat
 all : $(TARGET)
 
 # executable constructed using linker from object files
-$(TARGET) : $(OBJS) $(OBJMRB) $(LIBFFI_LIB)
-	rm -Rf $(BASEDIR)/../tmp/libffi_o
-	mkdir -p $(BASEDIR)/../tmp/libffi_o
-	cd $(BASEDIR)/../tmp/libffi_o && ar x ../../vendors/lib/libffi.a
-	$(AR) r $@ $(OBJS) $(OBJMRB) $(BASEDIR)/../tmp/libffi_o/*.o
-	rm -Rf $(BASEDIR)/../tmp/libffi_o
+$(TARGET) : $(OBJS) $(OBJMRB)
+	$(AR) r $@ $(OBJS) $(OBJMRB)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
