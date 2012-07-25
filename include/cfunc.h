@@ -31,21 +31,23 @@
 #include "mruby.h"
 
 struct cfunc_state {
-    struct RClass *cfunc_type_class;
-    struct RClass *cfunc_void_class;
-    struct RClass *cfunc_uint8_class;
-    struct RClass *cfunc_sint8_class;
-    struct RClass *cfunc_uint16_class;
-    struct RClass *cfunc_sint16_class;
-    struct RClass *cfunc_uint32_class;
-    struct RClass *cfunc_sint32_class;
-    struct RClass *cfunc_uint64_class;
-    struct RClass *cfunc_sint64_class;
-    struct RClass *cfunc_float_class;
-    struct RClass *cfunc_double_class;
-    struct RClass *cfunc_pointer_class;
-    struct RClass *cfunc_struct_class;
-    struct RClass *cfunc_closure_class;
+    struct RClass *namespace;
+    
+    struct RClass *type_class;
+    struct RClass *void_class;
+    struct RClass *uint8_class;
+    struct RClass *sint8_class;
+    struct RClass *uint16_class;
+    struct RClass *sint16_class;
+    struct RClass *uint32_class;
+    struct RClass *sint32_class;
+    struct RClass *uint64_class;
+    struct RClass *sint64_class;
+    struct RClass *float_class;
+    struct RClass *double_class;
+    struct RClass *pointer_class;
+    struct RClass *struct_class;
+    struct RClass *closure_class;
 };
 
 void init_cfunc_module(mrb_state *mrb);

@@ -21,13 +21,14 @@ init_cfunc_rb(mrb_state *mrb);
 
 void init_cfunc_module(mrb_state *mrb)
 {
-    struct RClass *module = mrb_define_module(mrb, "CFunc");
+    struct RClass *ns = mrb_define_module(mrb, "CFunc");
+    cfunc_state(mrb)->namespace = ns;
 
-    init_cfunc_type(mrb, module);
-    init_cfunc_pointer(mrb, module);
-    init_cfunc_struct(mrb, module);
-    init_cfunc_closure(mrb, module);
-    init_cfunc_call(mrb, module);
+    init_cfunc_type(mrb, ns);
+    init_cfunc_pointer(mrb, ns);
+    init_cfunc_struct(mrb, ns);
+    init_cfunc_closure(mrb, ns);
+    init_cfunc_call(mrb, ns);
 
     init_cfunc_rb(mrb);
 }

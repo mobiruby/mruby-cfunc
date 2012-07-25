@@ -177,8 +177,8 @@ static struct mrb_ffi_type closure_mrb_ffi_type = {
 void
 init_cfunc_closure(mrb_state *mrb, struct RClass* module)
 {
-    struct RClass *closure_class = mrb_define_class_under(mrb, module, "Closure", cfunc_state(mrb)->cfunc_pointer_class);
-    cfunc_state(mrb)->cfunc_closure_class = closure_class;
+    struct RClass *closure_class = mrb_define_class_under(mrb, module, "Closure", cfunc_state(mrb)->pointer_class);
+    cfunc_state(mrb)->closure_class = closure_class;
 
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_data_type, &closure_mrb_ffi_type));
     mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern(mrb, "ffi_type"), ffi_type);
