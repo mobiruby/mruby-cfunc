@@ -5,9 +5,9 @@
 //
 
 #include "cfunc_call.h"
-#include "cfunc.h"
 #include "cfunc_pointer.h"
 #include "cfunc_type.h"
+#include "cfunc_utils.h"
 
 #include "mruby/string.h"
 #include "mruby/class.h"
@@ -26,16 +26,21 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
         
     void *dlh = dlopen(NULL, RTLD_LAZY);
-    void *fp = dlsym(dlh, RSTRING_PTR(mname));
+    void *fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
     
+    if(fp == NULL) {
+        mrb_raise(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+        goto cfunc_call_exit;
+    }
+
     ffi_type **args = malloc(sizeof(ffi_type*) * margc);
     void **values = malloc(sizeof(void*) * margc);
     mrb_sym to_pointer = mrb_intern(mrb, "to_pointer");
 
     for(int i = 0; i < margc; ++i) {
         if(!mrb_respond_to(mrb, margs[i], to_pointer)) {
-            // Todo: should free some malloc-ed pointers
-            mrb_raise(mrb, E_TYPE_ERROR, "ignore argument type");
+            cfunc_mrb_raise_without_jump(mrb, E_TYPE_ERROR, "ignore argument type %s", mrb_obj_classname(mrb, margs[i]));
+            goto cfunc_call_exit;
         }
         args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
         values[i] = mobi_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
@@ -43,7 +48,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     
     ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
     if (result_type == NULL) {
-        mrb_raise(mrb, E_ARGUMENT_ERROR, "ignore return type");
+        cfunc_mrb_raise_without_jump(mrb, E_ARGUMENT_ERROR, "ignore return type %s", mrb_class_name(mrb, mrb_class_ptr(mresult_type)));
+        goto cfunc_call_exit;
     }
     
     mrb_value mresult = mrb_nil_value();
@@ -58,8 +64,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
     else {
-        // todo
-        mrb_raise(mrb, E_NAME_ERROR, "can't find C function");
+        mrb_raise(mrb, E_NAME_ERROR, "can't find C function %s", mname);
+        goto cfunc_call_exit;
     }
 
 cfunc_call_exit:

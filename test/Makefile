@@ -21,8 +21,13 @@ LIBFFI_CFLAGS = $(shell pkg-config libffi --cflags)
 LIBFFI_LIBS = $(shell pkg-config libffi --libs)
 
 # libraries, includes
-LIBS = -lm -ldl
-LDFLAGS = -Wl,-allow_stack_execute
+LIBS = -ldl -lm
+
+ifeq ($(shell uname -s),Darwin)
+  LDFLAGS = -Wl,-allow_stack_execute
+else
+  LDFLAGS = 
+endif
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -61,7 +66,7 @@ run : $(TARGET)
 
 # executable constructed using linker from object files
 $(TARGET) : $(OBJS) $(OBJMRB) $(LIBR)
-	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LIBS) $(MRUBY_LIBS) $(LIBFFI_LIBS)
+	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(MRUBY_LIBS) $(LIBFFI_LIBS) $(LIBS)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
