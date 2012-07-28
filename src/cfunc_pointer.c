@@ -99,7 +99,7 @@ cfunc_pointer_refer(mrb_state *mrb, mrb_value klass)
     mrb_value pointer;
     mrb_get_args(mrb, "o", &pointer);
 
-    data->value._pointer = mobi_pointer_ptr(pointer);
+    data->value._pointer = cfunc_pointer_ptr(pointer);
 
     struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_pointer_data_type, data);
     mrb_obj_iv_set(mrb, obj, mrb_intern(mrb, "parent_pointer"), pointer); // keep for GC
@@ -126,7 +126,7 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
         set_cfunc_pointer_data(data, NULL);
     }
     else {
-        set_cfunc_pointer_data(data, mobi_pointer_ptr(ptr));
+        set_cfunc_pointer_data(data, cfunc_pointer_ptr(ptr));
     }
 
     return self;
@@ -263,7 +263,7 @@ cfunc_pointer_c_to_mrb(mrb_state *mrb, void* p)
 static void
 cfunc_pointer_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 {
-    *(void**)p = mobi_pointer_ptr(val);
+    *(void**)p = cfunc_pointer_ptr(val);
 }
 
 
@@ -277,7 +277,7 @@ cfunc_pointer_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data)
 static void
 cfunc_pointer_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data *data)
 {
-    set_cfunc_pointer_data(data, mobi_pointer_ptr(val));
+    set_cfunc_pointer_data(data, cfunc_pointer_ptr(val));
 }
 
 

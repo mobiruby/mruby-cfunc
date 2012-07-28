@@ -12,7 +12,7 @@
 #include "mruby/data.h"
 #include <stdbool.h>
 
-#define mobi_pointer_ptr(v) ( \
+#define cfunc_pointer_ptr(v) ( \
     ((struct cfunc_type_data*)DATA_PTR(v))->refer \
     ? *(void**)(((struct cfunc_type_data*)DATA_PTR(v))->value._pointer) \
     : ((struct cfunc_type_data*)DATA_PTR(v))->value._pointer \

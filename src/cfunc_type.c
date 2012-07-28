@@ -68,7 +68,7 @@ cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
     mrb_get_args(mrb, "o", &pointer);
 
     data->refer = true;
-    data->value._pointer = mobi_pointer_ptr(pointer);
+    data->value._pointer = cfunc_pointer_ptr(pointer);
 
     struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_type_data, data);
     mrb_obj_iv_set(mrb, obj, mrb_intern(mrb, "parent_pointer"), pointer); // keep for GC
@@ -124,7 +124,7 @@ cfunc_type_class_get(mrb_state *mrb, mrb_value klass)
     mrb_get_args(mrb, "o", &pointer);
 
     struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
-    return mft->c_to_mrb(mrb, mobi_pointer_ptr(pointer));
+    return mft->c_to_mrb(mrb, cfunc_pointer_ptr(pointer));
 }
 
 
@@ -135,7 +135,7 @@ cfunc_type_class_set(mrb_state *mrb, mrb_value klass)
     mrb_get_args(mrb, "oo", &pointer, &val);
 
     struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
-    mft->mrb_to_c(mrb, val, mobi_pointer_ptr(pointer));
+    mft->mrb_to_c(mrb, val, cfunc_pointer_ptr(pointer));
 
     return val;
 }

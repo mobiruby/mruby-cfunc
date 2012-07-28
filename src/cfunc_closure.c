@@ -139,7 +139,7 @@ cfunc_closure_c_to_mrb(mrb_state *mrb, void* p)
 static void
 cfunc_closure_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 {
-    *(void**)p = mobi_pointer_ptr(val);
+    *(void**)p = cfunc_pointer_ptr(val);
 }
 
 
@@ -153,7 +153,7 @@ cfunc_closure_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data)
 static void
 cfunc_closure_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data *data)
 {
-    set_cfunc_pointer_data(data, mobi_pointer_ptr(val));
+    set_cfunc_pointer_data(data, cfunc_pointer_ptr(val));
 }
 
 

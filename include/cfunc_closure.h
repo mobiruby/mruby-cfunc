@@ -32,7 +32,7 @@ struct cfunc_closure_data {
 };
 
 #define cfunc_closure_data_pointer(mrb, val) \
-    mobi_pointer_ptr(val)
+    cfunc_pointer_ptr(val)
 
 void init_cfunc_closure(mrb_state *mrb, struct RClass* module);
 

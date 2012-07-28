@@ -43,7 +43,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
             goto cfunc_call_exit;
         }
         args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
-        values[i] = mobi_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
+        values[i] = cfunc_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
     }
     
     ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
