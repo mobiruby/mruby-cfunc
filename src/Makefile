@@ -3,7 +3,7 @@
 
 # project-specific macros
 # extension of the executable-file is modifiable(.exe .out ...)
-BASEDIR = .
+BASEDIR = $(shell pwd)
 TARGET := $(BASEDIR)/../lib/libmruby-cfunc.a
 MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/mrb/*.rb))
 EXCEPT1 := $(MRBCSRC)
@@ -15,7 +15,7 @@ OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
 MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
 # libraries, includes
-INCLUDES = 
+INCLUDES = -I$(BASEDIR)/../include
 
 # libffi
 LIBFFI_CFLAGS = $(shell pkg-config libffi --cflags)

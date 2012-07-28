@@ -114,11 +114,11 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
     data = mrb_get_datatype(mrb, self, &cfunc_pointer_data_type);
     if (!data) {
         data = malloc(sizeof(struct cfunc_type_data));
+        DATA_PTR(self) = data;
+        DATA_TYPE(self) = &cfunc_pointer_data_type;   
     }
     data->refer = false;
     data->autofree = false;
-    DATA_PTR(self) = data;
-    DATA_TYPE(self) = &cfunc_pointer_data_type;   
 
     mrb_value ptr;
     int argc = mrb_get_args(mrb, "|o", &ptr);
