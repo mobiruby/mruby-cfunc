@@ -55,7 +55,16 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     mrb_value mresult = mrb_nil_value();
     ffi_cif cif;
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
-        void *result = result_type->size ? malloc(result_type->size) : NULL;
+        void *result;
+        if(result_type->size > sizeof(long)) {
+            result = malloc(result_type->size);
+        }
+        else if(result_type->size) {
+            result = malloc(sizeof(long));
+        }
+        else {
+            result = NULL;
+        }
         ffi_call(&cif, fp, result, values);
         
         if(result) {
