@@ -115,7 +115,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
     static jmp_buf jmp;
     data->mrb->jmp = & jmp;
     if (setjmp( *(jmp_buf*) data->mrb->jmp ) == 0) {
-        result = mrb_funcall_argv(data->mrb, block, "call", data->argc, ary);
+        result = mrb_funcall_argv(data->mrb, block, mrb_intern(data->mrb, "call"), data->argc, ary);
     }
     else {
         mrb_p(data->mrb, mrb_obj_value(data->mrb->exc));
