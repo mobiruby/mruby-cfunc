@@ -57,7 +57,7 @@ cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
     tm_type->type = FFI_TYPE_STRUCT;
     tm_type->size = tm_type->alignment = 0;
 
-    ffi_type **tm_type_elements = malloc(sizeof(ffi_type) * (elements->len + 1));
+    ffi_type **tm_type_elements = malloc(sizeof(ffi_type*) * (elements->len + 1));
     int i;
     for(i = 0; i < elements->len; ++i) {
         tm_type_elements[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(elements->ptr[i]))->ffi_type_value;

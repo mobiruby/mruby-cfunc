@@ -23,6 +23,9 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 {
     int margc;
     mrb_value mresult_type, mname, *margs;
+    void **values = NULL;
+    ffi_type **args = NULL;
+    
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
         
     void *dlh = dlopen(NULL, RTLD_LAZY);
@@ -33,8 +36,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         goto cfunc_call_exit;
     }
 
-    ffi_type **args = malloc(sizeof(ffi_type*) * margc);
-    void **values = malloc(sizeof(void*) * margc);
+    args = malloc(sizeof(ffi_type*) * margc);
+    values = malloc(sizeof(void*) * margc);
     mrb_sym to_pointer = mrb_intern(mrb, "to_pointer");
 
     for(int i = 0; i < margc; ++i) {

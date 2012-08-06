@@ -94,7 +94,12 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     int argc = mrb_get_args(mrb, "|o", &val);
     if(argc > 0) {
         struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, RBASIC_KLASS(self));
-        mft->mrb_to_data(mrb, val, data);
+        if(mft && mft->mrb_to_data) {
+            mft->mrb_to_data(mrb, val, data);
+        }
+        else {
+            mrb_raise(mrb, E_TYPE_ERROR, "Fatal in cfunc_type_initialize");
+        }
     }
 
     return self;
