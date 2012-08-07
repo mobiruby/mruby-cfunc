@@ -116,7 +116,7 @@ class CFunc::Struct
     end
 
     def self.align
-        16 # todo
+        16 # todo: should calc struct align
     end
 
     def initialize(val=nil)
