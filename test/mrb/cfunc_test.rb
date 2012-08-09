@@ -44,6 +44,8 @@ end
 
 class StructTest1 < TestCase
   def test_10_create_instance
+    eq 8, ::STest.size
+    eq 8, ::STest.align
     @stest = ::STest.new
   end
 

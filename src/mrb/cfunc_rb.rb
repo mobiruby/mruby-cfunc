@@ -99,24 +99,22 @@ end
 
 class CFunc::Struct
     class << self
-        attr_accessor :elements, :size
+        attr_accessor :elements, :size, :align
         
         def define(*args)
-            self.elements = []
+            @elements = []
             types, offset = [], 0
+            max_align = 0
             args.each_slice(2) do |el|
                 offset = calc_align(offset, el[0].align)
                 types << el[0]
                 @elements << [el[0], el[1].to_s, offset]
                 offset += el[0].size
+                max_align = el[0].align if el[0].align > max_align
             end
-            @size = offset
+            @align = @size = offset + ((-offset) & (max_align - 1))
             self.define_struct(self.to_s, types)
         end
-    end
-
-    def self.align
-        16 # todo: should calc struct align
     end
 
     def initialize(val=nil)
