@@ -102,6 +102,7 @@ class CFunc::Struct
         attr_accessor :elements, :size, :align
         
         def define(*args)
+            args = args.first if args.is_a?(Array) && args.size == 0
             @elements = []
             types, offset = [], 0
             max_align = 0
