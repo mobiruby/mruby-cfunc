@@ -49,8 +49,8 @@ cfunc_type_ffi_struct_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 mrb_value
 cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
 {
-    mrb_value name_mrb, elements_mrb;
-    mrb_get_args(mrb, "oA", &name_mrb, &elements_mrb);
+    mrb_value elements_mrb;
+    mrb_get_args(mrb, "A", &elements_mrb);
     struct RArray *elements = mrb_ary_ptr(elements_mrb);
 
     ffi_type *tm_type = malloc(sizeof(ffi_type));
@@ -84,5 +84,5 @@ init_cfunc_struct(mrb_state *mrb, struct RClass* module)
     struct RClass *struct_class = mrb_define_class_under(mrb, module, "Struct", mrb->object_class);
     cfunc_state(mrb)->struct_class = struct_class;
     
-    mrb_define_class_method(mrb, struct_class, "define_struct", cfunc_struct_define_struct, ARGS_REQ(2));
+    mrb_define_class_method(mrb, struct_class, "define_struct", cfunc_struct_define_struct, ARGS_REQ(1));
 }

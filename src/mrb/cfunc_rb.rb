@@ -113,7 +113,7 @@ class CFunc::Struct
                 max_align = el[0].align if el[0].align > max_align
             end
             @align = @size = offset + ((-offset) & (max_align - 1))
-            self.define_struct(self.to_s, types)
+            self.define_struct(types)
         end
     end
 
