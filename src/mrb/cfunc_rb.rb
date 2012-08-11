@@ -16,6 +16,20 @@ module CFunc
     def self.SInt64(val); SInt64.new(val) end
     def self.Float(val); Float.new(val) end
     def self.Double(val); Double.new(val) end
+
+    class Type
+        def to_i
+            self.value.to_i
+        end
+
+        def to_f
+            self.value.to_f
+        end
+
+        def to_s
+            self.value.to_s
+        end
+    end
 end
 
 class CFunc::Pointer
