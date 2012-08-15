@@ -14,10 +14,13 @@
 #include "mruby/class.h"
 #include "mruby/variable.h"
 
+#include "ffi.h"
+
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
 
+static void *null_pointer = NULL;
 
 static void
 cfunc_type_destructor(mrb_state *mrb, void *p)
@@ -53,6 +56,9 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
 struct mrb_ffi_type*
 mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
 {
+    if(mrb_nil_p(val)) {
+        return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb)->pointer_class);
+    }
     return rclass_to_mrb_ffi_type(mrb, RBASIC_KLASS(val));
 }
 
@@ -185,6 +191,39 @@ cfunc_type_to_pointer(mrb_state *mrb, mrb_value self)
     mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
 
     return ptr;
+}
+
+
+mrb_value
+cfunc_nil_to_pointer(mrb_state *mrb, mrb_value self)
+{
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+
+    mrb_value ptr;
+    if(data->refer) {
+        ptr = cfunc_pointer_new_with_pointer(mrb, data->value._pointer, false);
+    }
+    else {
+        ptr = cfunc_pointer_new_with_pointer(mrb, &data->value._pointer, false);
+    }
+
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+
+    return ptr;
+}
+
+
+static mrb_value
+cfunc_nil_align(mrb_state *mrb, mrb_value klass)
+{
+    return mrb_fixnum_value(ffi_type_pointer.alignment);
+}
+
+
+static mrb_value
+cfunc_nil_size(mrb_state *mrb, mrb_value klass)
+{
+    return mrb_fixnum_value(ffi_type_pointer.size);
 }
 
 
@@ -338,4 +377,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     cfunc_state(mrb)->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
     cfunc_state(mrb)->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
     cfunc_state(mrb)->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
+
+    mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());
+    mrb_define_class_method(mrb, mrb->nil_class, "align", cfunc_nil_align, ARGS_NONE());
 }

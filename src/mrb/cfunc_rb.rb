@@ -4,6 +4,12 @@ class CFunc::Type
     end
 end
 
+class NilClass
+    def to_pointer
+        @null_pointer ||= CFunc::Pointer.new.to_pointer
+    end
+end
+
 module CFunc
     def self.Int(val); Int.new(val) end
     def self.UInt8(val); UIn8.new(val) end

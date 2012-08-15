@@ -41,12 +41,14 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     mrb_sym to_pointer = mrb_intern(mrb, "to_pointer");
 
     for(int i = 0; i < margc; ++i) {
-        if(!mrb_respond_to(mrb, margs[i], to_pointer)) {
+        if(mrb_respond_to(mrb, margs[i], to_pointer)) {
+            args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
+            values[i] = cfunc_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
+        }
+        else {
             cfunc_mrb_raise_without_jump(mrb, E_TYPE_ERROR, "ignore argument type %s", mrb_obj_classname(mrb, margs[i]));
             goto cfunc_call_exit;
         }
-        args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
-        values[i] = cfunc_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
     }
     
     ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;

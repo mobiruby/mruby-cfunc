@@ -18,6 +18,12 @@ size_t cfunc_state_offset = 0;
 void
 init_cfunc_rb(mrb_state *mrb);
 
+mrb_value
+cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
+{
+    return cfunc_pointer_new_with_pointer(mrb, mrb, false);
+}
+
 
 void init_cfunc_module(mrb_state *mrb)
 {
@@ -29,6 +35,9 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_struct(mrb, ns);
     init_cfunc_closure(mrb, ns);
     init_cfunc_call(mrb, ns);
+
+    mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
+
 
     init_cfunc_rb(mrb);
 }
