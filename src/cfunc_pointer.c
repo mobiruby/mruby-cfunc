@@ -263,7 +263,12 @@ cfunc_pointer_c_to_mrb(mrb_state *mrb, void* p)
 static void
 cfunc_pointer_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 {
-    *(void**)p = cfunc_pointer_ptr(val);
+    if(mrb_nil_p(val)) {
+        *(void**)p = NULL;
+    }
+    else {
+        *(void**)p = cfunc_pointer_ptr(val);
+    }
 }
 
 
