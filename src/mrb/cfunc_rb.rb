@@ -99,9 +99,6 @@ module CFunc
 
     class Int < SInt32
     end
-
-    class CString < ::String
-    end
 end
 
 module Enumerable
