@@ -37,7 +37,6 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_call(mrb, ns);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
-
-
+    
     init_cfunc_rb(mrb);
 }

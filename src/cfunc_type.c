@@ -20,8 +20,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-static void *null_pointer = NULL;
-
 static void
 cfunc_type_destructor(mrb_state *mrb, void *p)
 {

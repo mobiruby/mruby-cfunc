@@ -220,9 +220,15 @@ cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
     int offset;
     mrb_get_args(mrb, "i", &offset);
 
-    mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, (void*)((uint8_t*)get_cfunc_pointer_data(data) + offset), false);
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
-    return ptr;
+/*
+    if(offset == 0) {
+        return self;
+    }
+    else {*/
+        mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, (void*)((uint8_t*)get_cfunc_pointer_data(data) + offset), false);
+        mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+        return ptr;
+//    }
 }
 
 
@@ -238,7 +244,7 @@ cfunc_pointer_to_pointer(mrb_state *mrb, mrb_value self)
         ptr = &data->value._pointer;
     }
 
-    mrb_value obj = cfunc_pointer_new_with_pointer(mrb, ptr, 0);
+    mrb_value obj = cfunc_pointer_new_with_pointer(mrb, ptr, false);
     mrb_obj_iv_set(mrb, mrb_obj_ptr(obj), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
     return obj;
 }

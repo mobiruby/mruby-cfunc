@@ -104,7 +104,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
         // TODO: I felt too much consume memory
         void *p = malloc(data->arg_ffi_types[i]->size);
         memcpy(p, args[i], data->arg_ffi_types[i]->size);
-        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
+        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, false);//true);//debug
         ary[i] = mrb_funcall(data->mrb, data->arg_types[i], "refer", 1, pointer);
     }
 

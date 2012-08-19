@@ -38,12 +38,14 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     args = malloc(sizeof(ffi_type*) * margc);
     values = malloc(sizeof(void*) * margc);
-    mrb_sym to_pointer = mrb_intern(mrb, "to_pointer");
+    mrb_sym sym_to_ffi_value = mrb_intern(mrb, "to_ffi_value");
 
+    mrb_value nil_ary[1];
+    nil_ary[0] = mrb_nil_value();
     for(int i = 0; i < margc; ++i) {
-        if(mrb_respond_to(mrb, margs[i], to_pointer)) {
+        if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
-            values[i] = cfunc_pointer_ptr(mrb_funcall(mrb, margs[i], "to_pointer", 0));
+            values[i] = cfunc_pointer_ptr(mrb_funcall_argv(mrb, margs[i], sym_to_ffi_value, 1, nil_ary));
         }
         else {
             cfunc_mrb_raise_without_jump(mrb, E_TYPE_ERROR, "ignore argument type %s", mrb_obj_classname(mrb, margs[i]));
@@ -73,12 +75,12 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         ffi_call(&cif, fp, result, values);
         
         if(result) {
-            mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, 1);
+            mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, true);
             mresult = mrb_funcall(mrb, mresult_type, "refer", 1, result_ptr);
         }
     }
     else {
-        mrb_raise(mrb, E_NAME_ERROR, "can't find C function %s", mname);
+        mrb_raise(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
         goto cfunc_call_exit;
     }
 

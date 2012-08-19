@@ -2,10 +2,18 @@ class CFunc::Type
     def to_ffi_type
         self.class.to_ffi_type
     end
+
+    def to_ffi_value(ffi_type)
+        self.to_pointer
+    end
 end
 
 class NilClass
     def to_pointer
+        @null_pointer ||= CFunc::Pointer.new.to_pointer
+    end
+
+    def to_ffi_value(ffi_type)
         @null_pointer ||= CFunc::Pointer.new.to_pointer
     end
 end
@@ -69,6 +77,9 @@ class String
     end
 
     # defined to_pointer in cfunc_type.c
+    def to_ffi_value(ffi_type)
+        self.to_pointer
+    end
 end
 
 module CFunc
@@ -166,6 +177,10 @@ class CFunc::Struct
     end
 
     def to_pointer
+        @pointer
+    end
+
+    def to_ffi_value(ffi_type)
         @pointer
     end
 
