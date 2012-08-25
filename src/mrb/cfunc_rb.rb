@@ -8,16 +8,6 @@ class CFunc::Type
     end
 end
 
-class NilClass
-    def to_pointer
-        @null_pointer ||= CFunc::Pointer.new.to_pointer
-    end
-
-    def to_ffi_value(ffi_type)
-        @null_pointer ||= CFunc::Pointer.new.to_pointer
-    end
-end
-
 module CFunc
     def self.Int(val); Int.new(val) end
     def self.UInt8(val); UIn8.new(val) end
@@ -196,5 +186,43 @@ class CFunc::Struct
     def self.calc_align(offset, alignment)
         rest = offset % alignment
         (0 == rest) ? offset : (offset + alignment - rest)
+    end
+end
+
+
+
+# immediate values cannot have instance variables.
+# it's mruby limitation.
+# https://github.com/mruby/mruby/issues/438
+$mruby_cfunc_null_pointer = CFunc::Pointer.new.to_pointer
+class NilClass
+    def to_pointer
+        $mruby_cfunc_null_pointer
+    end
+
+    def to_ffi_value(ffi_type)
+        $mruby_cfunc_null_pointer
+    end
+end
+
+$mruby_cfunc_true_pointer = CFunc::Int(-1).to_pointer
+class TrueClass
+    def to_pointer
+        $mruby_cfunc_true_pointer
+    end
+
+    def to_ffi_value(ffi_type)
+        $mruby_cfunc_true_pointer
+    end
+end
+
+$mruby_cfunc_false_pointer = CFunc::Int(0).to_pointer
+class FalseClass
+    def to_pointer
+        $mruby_cfunc_false_pointer
+    end
+
+    def to_ffi_value(ffi_type)
+        $mruby_cfunc_false_pointer
     end
 end

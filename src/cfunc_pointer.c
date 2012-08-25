@@ -220,15 +220,14 @@ cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
     int offset;
     mrb_get_args(mrb, "i", &offset);
 
-/*
     if(offset == 0) {
         return self;
     }
-    else {*/
+    else {
         mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, (void*)((uint8_t*)get_cfunc_pointer_data(data) + offset), false);
         mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
         return ptr;
-//    }
+    }
 }
 
 
