@@ -69,6 +69,8 @@ tmp/libffi:
 
 vendors/lib/libffi.a: tmp/libffi
 	cd tmp/libffi && ./configure --prefix=`pwd`/../../vendors && make install
+	mkdir -p include/ffi
+	cp -r `pkg-config vendors/lib/pkgconfig/libffi.pc --cflags-only-I |sed -e "s/ /\/*/" | sed -e "s/-I/ /"` include/ffi
 
 
 ##################

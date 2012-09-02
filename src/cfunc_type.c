@@ -355,6 +355,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, type_class, "value", cfunc_type_get_value, ARGS_NONE());
     mrb_define_method(mrb, type_class, "value=", cfunc_type_set_value, ARGS_REQ(1));
     mrb_define_method(mrb, type_class, "to_pointer", cfunc_type_to_pointer, ARGS_NONE());
+    mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_to_pointer, ARGS_NONE());
 
     int map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
     for(int i = 0; i < map_size; ++i) {
