@@ -12,6 +12,15 @@
 #include "cfunc_closure.h"
 #include "cfunc_type.h"
 
+#include "mruby/proc.h"
+#include "mruby/dump.h"
+
+#include <setjmp.h>
+
+#ifdef USE_MRBC_DATA
+extern const char mruby_data_cfunc_rb[];
+#endif
+
 size_t cfunc_state_offset = 0;
 
 // generate from mrb/cfunc_rb.rb
@@ -38,5 +47,19 @@ void init_cfunc_module(mrb_state *mrb)
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
     
+#ifdef USE_MRBC_DATA
+    int n = mrb_read_irep(mrb, mruby_data_cfunc_rb);
+    if (n >= 0) {
+        mrb_irep *irep = mrb->irep[n];
+        struct RProc *proc = mrb_proc_new(mrb, irep);
+        proc->target_class = mrb->object_class;
+        mrb_run(mrb, proc, mrb_top_self(mrb));
+    }
+    else if (mrb->exc) {
+        longjmp(*(jmp_buf*)mrb->jmp, 1);
+    }
+#else
     init_cfunc_rb(mrb);
+#endif
+
 }
