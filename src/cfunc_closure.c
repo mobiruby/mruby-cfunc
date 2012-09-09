@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <setjmp.h>
+#include <string.h>
 
 
 static void
