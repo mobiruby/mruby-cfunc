@@ -39,6 +39,7 @@ static struct mrb_data_type cfunc_type_data = {
 struct mrb_ffi_type*
 rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
 {
+    struct RClass *cls_ = cls;
     while(cls) {
         mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern(mrb, "ffi_type"));
         if(mrb_test(ffi_type)) {
@@ -46,7 +47,7 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
         }
         cls = cls->super;
     }
-    mrb_raise(mrb, E_TYPE_ERROR, "Cannot convert to c value");
+    mrb_raise(mrb, E_TYPE_ERROR, "%s cannot convert to c value", mrb_class_name(mrb, cls_));
     return NULL;
 }
 
