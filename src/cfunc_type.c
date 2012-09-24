@@ -47,7 +47,7 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
         }
         cls = cls->super;
     }
-    mrb_raise(mrb, E_TYPE_ERROR, "%s cannot convert to c value", mrb_class_name(mrb, cls_));
+    mrb_raise(mrb, E_TYPE_ERROR, "%s cannot convert to C value", mrb_class_name(mrb, cls_));
     return NULL;
 }
 
