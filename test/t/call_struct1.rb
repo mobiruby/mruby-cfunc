@@ -18,6 +18,7 @@ assert_equal 20, result[:y]
 assert_equal 30, result[:z]
 
 
+############
 # BEGIN C
 struct STest {
     int8_t x;

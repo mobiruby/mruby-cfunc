@@ -4,9 +4,9 @@
 # project-specific macros
 # extension of the executable-file is modifiable(.exe .out ...)
 BASEDIR = .
-MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/t/*.rb))
-OBJMRB := $(patsubst %.c,%.o,$(MRBCSRC))
-TESTS := $(patsubst %.c,%.exe,$(MRBCSRC))
+TESTSRCS := $(wildcard $(BASEDIR)/t/*.rb)
+TESTOBJS := $(patsubst %.rb,%.o,$(TESTSRCS))
+TESTS := $(patsubst %.rb,%.exe,$(TESTSRCS))
 
 LIBR := $(BASEDIR)/../lib/libmruby-cfunc.a
 EXCEPT1 := $(MRBCSRC)
@@ -73,7 +73,7 @@ $(TESTS) : %.exe : %.o
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
 # mrby complie
-$(OBJMRB) : %.o : %.rb
+$(TESTOBJS) : %.o : %.rb
 	cat $< | ruby -e "print STDIN.read.gsub(/#\s*BEGIN\s+C.*/m,'')" | $(MRBC) -s -Btest_irep > $(basename $<).c
 	echo "const char* appname = \"$(basename $<)\";" >> $(basename $<).c
 	cat main.c >> $(basename $<).c
@@ -82,15 +82,9 @@ $(OBJMRB) : %.o : %.rb
 	rm $(basename $<).c
 
 
-# objects compiled from source
-$(OBJS) : %.o : %.c
-	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $< -o $@
-
-
 # clean up
 .PHONY : clean #cleandep
 clean :
 	@echo "make: removing targets, objects and depend files of `pwd`"
-	-$(RM_F) $(TARGET) $(OBJS) $(OBJMRB) $(MRB) $(TESTS)
-	-$(RM_F) $(OBJS:.o=.d) $(OBJY:.o=.d) $(OBJMRB:.o=.c)
-	-$(RM_F) $(patsubst %.c,%.o,$(EXCEPT1)) $(patsubst %.c,%.d,$(EXCEPT1))
+	-$(RM_F) $(TESTS) $(TESTOBJS) $(TESTS)
+	-$(RM_F) $(TESTOBJS:.o=.d) $(TESTOBJS:.o=.c)

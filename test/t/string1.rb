@@ -1,4 +1,3 @@
-
 str = "STRING"
 ptr = CFunc::Pointer.malloc(7)
 

@@ -1,3 +1,9 @@
+class STest < CFunc::Struct
+  define CFunc::SInt8, :x,
+    CFunc::SInt16, :y,
+    CFunc::SInt32, :z
+end
+
 class STest2 < CFunc::Struct
     define STest, :s,
       CFunc::Double, :xx
@@ -23,6 +29,7 @@ assert_equal 4, result[:s][:z]
 assert_equal 7.5, result[:xx]
 
 
+############
 # BEGIN C
 struct STest {
     int8_t x;
