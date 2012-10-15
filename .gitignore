@@ -3,6 +3,7 @@
 # 3rd party #
 #############
 vendors
+include/ffi
 
 # Compiled source #
 ###################
@@ -16,6 +17,8 @@ tmp
 *.d
 *.dSYM
 *.a
+test/t/*.c
+
 
 # Packages #
 ############

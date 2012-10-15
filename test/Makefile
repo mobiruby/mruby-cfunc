@@ -4,16 +4,12 @@
 # project-specific macros
 # extension of the executable-file is modifiable(.exe .out ...)
 BASEDIR = .
-TARGET := $(BASEDIR)/cfunc_test
-MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/mrb/*.rb))
-LIBR := $(BASEDIR)/../lib/libmruby-cfunc.a
-
-EXCEPT1 := $(MRBCSRC)
-
-OBJ1 := $(patsubst %.c,%.o,$(filter-out $(EXCEPT1),$(wildcard $(BASEDIR)/*.c)))
+MRBCSRC := $(patsubst %.rb,%.c,$(wildcard $(BASEDIR)/t/*.rb))
 OBJMRB := $(patsubst %.c,%.o,$(MRBCSRC))
-OBJS := $(OBJ1) $(OBJ2) $(OBJ3)
+TESTS := $(patsubst %.c,%.exe,$(MRBCSRC))
 
+LIBR := $(BASEDIR)/../lib/libmruby-cfunc.a
+EXCEPT1 := $(MRBCSRC)
 MRBC := $(BASEDIR)/../vendors/bin/mrbc
 
 # libffi
@@ -58,31 +54,43 @@ export CAT := cat
 # generic build targets, rules
 
 .PHONY : all
-all : $(TARGET)
+all : $(TESTS)
 
 .PHONY : run
-run : $(TARGET)
-	./$(TARGET)
+run : $(TESTS)
+	@echo
+	@echo "*** Start tests ***"
+	@echo
+	@for command in $(TESTS) ; do \
+	    $$command ; \
+	    echo ; \
+	done
 
 # executable constructed using linker from object files
-$(TARGET) : $(OBJS) $(OBJMRB) $(LIBR)
-	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(MRUBY_LIBS) $(LIBFFI_LIBS) $(LIBS)
+$(TESTS) : %.exe : %.o
+	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $(MRUBY_LIBS) $(LIBFFI_LIBS) $(LIBS) $(LIBR) $<
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
 # mrby complie
 $(OBJMRB) : %.o : %.rb
-	$(MRBC) -Cinit_$(*F) $<
+	cat $< | ruby -e "print STDIN.read.gsub(/#\s*BEGIN\s+C.*/m,'')" | $(MRBC) -s -Btest_irep > $(basename $<).c
+	echo "const char* appname = \"$(basename $<)\";" >> $(basename $<).c
+	cat main.c >> $(basename $<).c
+	cat $< | ruby -e 's=STDIN.read;print s.gsub(/.*#\s*BEGIN\s+C(.*)/m,"\\1") if s.match(/#\s*BEGIN\s+C/)' >> $(basename $<).c
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $(basename $<).c -o $@
+	rm $(basename $<).c
+
 
 # objects compiled from source
 $(OBJS) : %.o : %.c
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $< -o $@
 
+
 # clean up
 .PHONY : clean #cleandep
 clean :
 	@echo "make: removing targets, objects and depend files of `pwd`"
-	-$(RM_F) $(TARGET) $(OBJS) $(OBJMRB) $(MRB)
-	-$(RM_F) $(OBJS:.o=.d) $(OBJY:.o=.d)
+	-$(RM_F) $(TARGET) $(OBJS) $(OBJMRB) $(MRB) $(TESTS)
+	-$(RM_F) $(OBJS:.o=.d) $(OBJY:.o=.d) $(OBJMRB:.o=.c)
 	-$(RM_F) $(patsubst %.c,%.o,$(EXCEPT1)) $(patsubst %.c,%.d,$(EXCEPT1))
