@@ -1,10 +1,27 @@
 assert_equal 4, CFunc::Int.size
 assert_equal 4, CFunc::Int.align
 
-i = CFunc::Int.new
-i.value = 1
+int = CFunc::Int.new
 
-assert_equal 1, i.value
-assert_equal 1, i.to_i
+int.value = 1
+assert_equal 1, int.value
+assert_equal 1, int.to_i
 
-assert_equal 1.0, i.to_f
+assert_equal 1.0, int.to_f
+
+int_ptr = int.to_pointer
+assert int_ptr.is_a?(CFunc::Pointer)
+
+assert CFunc::Int.refer(int_ptr).is_a?(CFunc::Int)
+assert_equal 1, CFunc::Int.refer(int_ptr).value
+
+10.times do |idx|
+  int.value = idx
+  assert_equal idx, CFunc::Int.refer(int_ptr).value
+end
+
+int.value = 123
+assert_equal 123, CFunc::Int.get(int_ptr)
+
+CFunc::Int.set(int_ptr, 456)
+assert_equal 456, int.value
