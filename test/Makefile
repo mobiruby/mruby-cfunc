@@ -74,7 +74,7 @@ $(TESTS) : %.exe : %.o
 
 # mrby complie
 $(TESTOBJS) : %.o : %.rb
-	cat $< | ruby -e "print STDIN.read.gsub(/#\s*BEGIN\s+C.*/m,'')" | $(MRBC) -s -Btest_irep > $(basename $<).c
+	cat $< | ruby -e "print STDIN.read.gsub(/#\s*BEGIN\s+C.*/m,'')" | $(MRBC) -o- -Btest_irep - > $(basename $<).c
 	echo "const char* appname = \"$(basename $<)\";" >> $(basename $<).c
 	cat main.c >> $(basename $<).c
 	cat $< | ruby -e 's=STDIN.read;print s.gsub(/.*#\s*BEGIN\s+C(.*)/m,"\\1") if s.match(/#\s*BEGIN\s+C/)' >> $(basename $<).c

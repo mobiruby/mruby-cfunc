@@ -165,7 +165,7 @@ cfunc_type_set_value(mrb_state *mrb, mrb_value self)
 {
     mrb_value val;
     mrb_get_args(mrb, "o", &val);
-
+    
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, RBASIC_KLASS(self));
     mft->mrb_to_data(mrb, val, data);
@@ -265,7 +265,7 @@ cfunc_type_ffi_##name##_c_to_mrb(mrb_state *mrb, void *p) \
 static void \
 cfunc_type_ffi_##name##_mrb_to_c(mrb_state *mrb, mrb_value val, void *p) \
 { \
-    *(ctype*)p = mrb_to_c(val); \
+    *(ctype*)p = mrb_to_c(mrb, val); \
 } \
 \
 static mrb_value \
@@ -283,10 +283,10 @@ static void \
 cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data *data) \
 { \
     if(data->refer) { \
-        *(ctype*)data->value._pointer = mrb_to_c(val); \
+        *(ctype*)data->value._pointer = mrb_to_c(mrb, val); \
     } \
     else { \
-        data->value._##name = mrb_to_c(val); \
+        data->value._##name = mrb_to_c(mrb, val); \
     } \
 }
 
@@ -300,20 +300,51 @@ cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_
     .data_to_mrb = &cfunc_type_ffi_##type_##_data_to_mrb \
 }
 
-define_cfunc_type(sint8, &ffi_type_sint8, int8_t, mrb_fixnum_value, mrb_fixnum);
-define_cfunc_type(uint8, &ffi_type_uint8, uint8_t, mrb_fixnum_value, mrb_fixnum);
+static
+mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
+{
+    if(mrb_type(val) == MRB_TT_FIXNUM) {
+        return mrb_fixnum(val);
+    }
+    else if(mrb_type(val) == MRB_TT_FLOAT) {
+        return mrb_float(val);
+    }
+    else {
+        mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+            mrb_obj_classname(mrb, val));
+    }
+}
 
-define_cfunc_type(sint16, &ffi_type_sint16, int16_t, mrb_fixnum_value, mrb_fixnum);
-define_cfunc_type(uint16, &ffi_type_uint16, uint16_t, mrb_fixnum_value, mrb_fixnum);
+static
+mrb_float float_value(mrb_state *mrb, mrb_value val)
+{
+    if(mrb_type(val) == MRB_TT_FIXNUM) {
+        return mrb_fixnum(val);
+    }
+    else if(mrb_type(val) == MRB_TT_FLOAT) {
+        return mrb_float(val);
+    }
+    else {
+        mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+            mrb_obj_classname(mrb, val));
+    }
+}
 
-define_cfunc_type(sint32, &ffi_type_sint32, int32_t, mrb_fixnum_value, mrb_fixnum);
-define_cfunc_type(uint32, &ffi_type_uint32, uint32_t, mrb_fixnum_value, mrb_fixnum);
 
-define_cfunc_type(sint64, &ffi_type_sint64, int64_t, mrb_fixnum_value, mrb_fixnum);
-define_cfunc_type(uint64, &ffi_type_uint64, uint64_t, mrb_fixnum_value, mrb_fixnum);
+define_cfunc_type(sint8, &ffi_type_sint8, int8_t, mrb_fixnum_value, fixnum_value);
+define_cfunc_type(uint8, &ffi_type_uint8, uint8_t, mrb_fixnum_value, fixnum_value);
 
-define_cfunc_type(float, &ffi_type_float, float, mrb_float_value, mrb_float);
-define_cfunc_type(double, &ffi_type_double, double, mrb_float_value, mrb_float);
+define_cfunc_type(sint16, &ffi_type_sint16, int16_t, mrb_fixnum_value, fixnum_value);
+define_cfunc_type(uint16, &ffi_type_uint16, uint16_t, mrb_fixnum_value, fixnum_value);
+
+define_cfunc_type(sint32, &ffi_type_sint32, int32_t, mrb_fixnum_value, fixnum_value);
+define_cfunc_type(uint32, &ffi_type_uint32, uint32_t, mrb_fixnum_value, fixnum_value);
+
+define_cfunc_type(sint64, &ffi_type_sint64, int64_t, mrb_fixnum_value, fixnum_value);
+define_cfunc_type(uint64, &ffi_type_uint64, uint64_t, mrb_fixnum_value, fixnum_value);
+
+define_cfunc_type(float, &ffi_type_float, float, mrb_float_value, float_value);
+define_cfunc_type(double, &ffi_type_double, double, mrb_float_value, float_value);
 
 
 static struct mrb_ffi_type types[] = {
