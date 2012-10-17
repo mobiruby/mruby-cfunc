@@ -309,10 +309,9 @@ mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
     else if(mrb_type(val) == MRB_TT_FLOAT) {
         return mrb_float(val);
     }
-    else {
-        mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-            mrb_obj_classname(mrb, val));
-    }
+    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+        mrb_obj_classname(mrb, val));
+    return mrb_nil_value(); // can't reach here
 }
 
 static
@@ -324,10 +323,9 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
     else if(mrb_type(val) == MRB_TT_FLOAT) {
         return mrb_float(val);
     }
-    else {
-        mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-            mrb_obj_classname(mrb, val));
-    }
+    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+        mrb_obj_classname(mrb, val));
+    return mrb_nil_value(); // can't reach here
 }
 
 

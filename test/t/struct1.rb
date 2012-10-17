@@ -1,4 +1,3 @@
-
 class STest < CFunc::Struct
   define CFunc::SInt8, :x,
     CFunc::SInt16, :y,
