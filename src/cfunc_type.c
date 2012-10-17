@@ -311,7 +311,7 @@ mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
     }
     mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
         mrb_obj_classname(mrb, val));
-    return mrb_nil_value(); // can't reach here
+    return 0; // can't reach here
 }
 
 static
@@ -325,7 +325,7 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
     }
     mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
         mrb_obj_classname(mrb, val));
-    return mrb_nil_value(); // can't reach here
+    return 0.0; // can't reach here
 }
 
 

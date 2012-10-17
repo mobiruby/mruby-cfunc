@@ -19,9 +19,10 @@ LIBFFI_LIBS = $(shell pkg-config libffi --libs)
 # libraries, includes
 LIBS = -ldl -lm
 
-LDFLAGS = -Wl,--export-dynamic
 ifeq ($(shell uname -s),Darwin)
-  LDFLAGS += -Wl,-allow_stack_execute
+  LDFLAGS = -Wl,-allow_stack_execute
+else
+  LDFLAGS = -Wl,--export-dynamic
 endif
 
 ifeq ($(strip $(COMPILE_MODE)),)
