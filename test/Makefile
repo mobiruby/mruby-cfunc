@@ -68,7 +68,7 @@ run : $(TESTS)
 
 # executable constructed using linker from object files
 $(TESTS) : %.exe : %.o
-	$(LL) -o $@ $(CFLAGS) $(LDFLAGS) $(MRUBY_LIBS) $(LIBFFI_LIBS) $(LIBS) $(LIBR) $<
+	$(LL) $< -o $@ $(CFLAGS) $(LIBS) $(LIBR) $(MRUBY_LIBS) $(LDFLAGS) $(LIBFFI_LIBS)
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 

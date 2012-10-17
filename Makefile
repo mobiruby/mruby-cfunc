@@ -25,7 +25,7 @@ MRUBY_CFLAGS = -I$(BASEDIR)/vendors/include
 MRUBY_LIBS = -L$(BASEDIR)/vendors/lib -lmruby
 
 LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/vendors/lib/pkgconfig/libffi.pc --cflags)
-LIBFFI_LIBS = $(shell pkg-config $(BASEDIR)/vendors/lib/pkgconfig/libffi.pc --libs)
+LIBFFI_LIBS = $(BASEDIR)/vendors/lib/libffi.a
 
 ALL_CFLAGS = $(CFLAGS) $(INCLUDES) $(MRUBY_CFLAGS)
 ifeq ($(OS),Windows_NT)
