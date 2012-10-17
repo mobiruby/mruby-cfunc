@@ -21,8 +21,8 @@ assert_equal 1, CFunc::UInt32.refer(uint_ptr).value
 end
 
 uint.value = 2**32-1
-assert_equal 2**32-1, uint.value
-assert_equal 2**32-1, CFunc::UInt32.get(uint_ptr)
+assert_equal (2**32-1).to_i, uint.value
+assert_equal (2**32-1).to_i, CFunc::UInt32.get(uint_ptr)
 
 CFunc::UInt32.set(uint_ptr, 2**32)
 assert_not_equal 2**32, uint.value

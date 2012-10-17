@@ -41,7 +41,6 @@ endif
 ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(MRUBY_CFLAGS) $(LIBFFI_CFLAGS)
 
 
-
 ##############################
 # internal variables
 
@@ -62,13 +61,13 @@ run : $(TESTS)
 	@echo "*** Start tests ***"
 	@echo
 	@for command in $(TESTS) ; do \
-	    $$command ; \
+	    $$command || exit 1 ; \
 	    echo ; \
 	done
 
 # executable constructed using linker from object files
 $(TESTS) : %.exe : %.o
-	$(LL) $< -o $@ $(CFLAGS) $(LDFLAGS) $(LIBR) $(MRUBY_LIBS) $(LIBFFI_LIBS) $(LIBS) 
+	$(LL) $< -o $@ $(CFLAGS) $(LDFLAGS) $(LIBR) $(LIBFFI_LIBS) $(MRUBY_LIBS) $(LIBS) 
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
