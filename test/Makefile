@@ -78,7 +78,6 @@ $(TESTOBJS) : %.o : %.rb
 	cat main.c >> $(basename $<).c
 	cat $< | ruby -e 's=STDIN.read;print s.gsub(/.*#\s*BEGIN\s+C(.*)/m,"\\1") if s.match(/#\s*BEGIN\s+C/)' >> $(basename $<).c
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $(basename $<).c -o $@
-	rm $(basename $<).c
 
 
 # clean up

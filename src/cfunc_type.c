@@ -193,6 +193,105 @@ cfunc_type_to_pointer(mrb_state *mrb, mrb_value self)
 }
 
 
+static
+mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
+{
+    if(mrb_type(val) == MRB_TT_FIXNUM) {
+        return mrb_fixnum(val);
+    }
+    else if(mrb_type(val) == MRB_TT_FLOAT) {
+        return mrb_float(val);
+    }
+    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+        mrb_obj_classname(mrb, val));
+    return 0; // can't reach here
+}
+
+
+static
+mrb_float float_value(mrb_state *mrb, mrb_value val)
+{
+    if(mrb_type(val) == MRB_TT_FIXNUM) {
+        return mrb_fixnum(val);
+    }
+    else if(mrb_type(val) == MRB_TT_FLOAT) {
+        return mrb_float(val);
+    }
+    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+        mrb_obj_classname(mrb, val));
+    return 0.0; // can't reach here
+}
+
+
+// uint64 specific
+mrb_value
+cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
+{
+    mrb_raise(mrb, E_TYPE_ERROR, "unsigned 64bit value can't convert to Fixnum. Use low, high");
+    return mrb_nil_value(); // can't reach here
+}
+
+
+mrb_value
+cfunc_type_uint64_get_value(mrb_state *mrb, mrb_value self)
+{
+    mrb_raise(mrb, E_TYPE_ERROR, "unsigned 64bit value can't convert to Fixnum Use low, high");
+    return mrb_nil_value(); // can't reach here
+}
+
+
+mrb_value
+cfunc_uint64_get_low(mrb_state *mrb, mrb_value self)
+{
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    return mrb_fixnum_value(data->value._uint64 & 0xffffffff);
+}
+
+
+mrb_value
+cfunc_uint64_set_low(mrb_state *mrb, mrb_value self)
+{
+    mrb_value val;
+    mrb_get_args(mrb, "o", &val);
+    
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    data->value._uint64 = (data->value._uint64 & 0xffffffff00000000) | (((uint64_t)fixnum_value(mrb, val)) & 0xffffffff);
+    return val;
+}
+
+
+mrb_value
+cfunc_uint64_get_high(mrb_state *mrb, mrb_value self)
+{
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    return mrb_fixnum_value(data->value._uint64 >> 32);
+}
+
+
+mrb_value
+cfunc_uint64_set_high(mrb_state *mrb, mrb_value self)
+{
+    mrb_value val;
+    mrb_get_args(mrb, "o", &val);
+    
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    data->value._uint64 = (data->value._uint64 & 0x00000000ffffffff) | (((uint64_t)fixnum_value(mrb, val)) << 32);
+    
+    return val;
+}
+
+
+mrb_value
+cfunc_uint64_to_s(mrb_state *mrb, mrb_value self)
+{
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    char str[65];
+    snprintf(str, sizeof(str), "%lu", data->value._uint64);
+    return mrb_str_new_cstr(mrb, str);
+}
+
+
+// nil specific
 mrb_value
 cfunc_nil_to_pointer(mrb_state *mrb, mrb_value self)
 {
@@ -211,7 +310,6 @@ cfunc_nil_to_pointer(mrb_state *mrb, mrb_value self)
     return ptr;
 }
 
-
 static mrb_value
 cfunc_nil_align(mrb_state *mrb, mrb_value klass)
 {
@@ -226,6 +324,7 @@ cfunc_nil_size(mrb_state *mrb, mrb_value klass)
 }
 
 
+// void specific
 static mrb_value
 cfunc_type_ffi_void_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data)
 {
@@ -254,6 +353,7 @@ cfunc_type_ffi_void_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 }
 
 
+// macros
 #define define_cfunc_type(name, ffi_type_ptr, ctype, c_to_mrb, mrb_to_c) \
 \
 static mrb_value \
@@ -299,35 +399,6 @@ cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_
     .mrb_to_data = &cfunc_type_ffi_##type_##_mrb_to_data, \
     .data_to_mrb = &cfunc_type_ffi_##type_##_data_to_mrb \
 }
-
-static
-mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
-{
-    if(mrb_type(val) == MRB_TT_FIXNUM) {
-        return mrb_fixnum(val);
-    }
-    else if(mrb_type(val) == MRB_TT_FLOAT) {
-        return mrb_float(val);
-    }
-    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-        mrb_obj_classname(mrb, val));
-    return 0; // can't reach here
-}
-
-static
-mrb_float float_value(mrb_state *mrb, mrb_value val)
-{
-    if(mrb_type(val) == MRB_TT_FIXNUM) {
-        return mrb_fixnum(val);
-    }
-    else if(mrb_type(val) == MRB_TT_FLOAT) {
-        return mrb_float(val);
-    }
-    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-        mrb_obj_classname(mrb, val));
-    return 0.0; // can't reach here
-}
-
 
 define_cfunc_type(sint8, &ffi_type_sint8, int8_t, mrb_fixnum_value, fixnum_value);
 define_cfunc_type(uint8, &ffi_type_uint8, uint8_t, mrb_fixnum_value, fixnum_value);
@@ -409,4 +480,14 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
 
     mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());
     mrb_define_class_method(mrb, mrb->nil_class, "align", cfunc_nil_align, ARGS_NONE());
+
+    // sint64 specific
+    struct RClass *uint64_class = cfunc_state(mrb)->uint64_class;
+    mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "value", cfunc_type_uint64_get_value, ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "low=", cfunc_uint64_set_low, ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "high", cfunc_uint64_get_high, ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "high=", cfunc_uint64_set_high, ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "to_s", cfunc_uint64_to_s, ARGS_REQ(1));
 }

@@ -23,12 +23,16 @@ assert_equal 1, CFunc::SInt32.refer(sint_ptr).value
   assert_equal idx, CFunc::SInt32.refer(sint_ptr).value
 end
 
-sint.value = (2**32)/2-1
-assert_equal (2**32)/2-1, sint.value
-assert_equal (2**32)/2-1, CFunc::SInt32.get(sint_ptr)
+sint.value = (1<<31)-1
+assert_equal (1<<31)-1, sint.value
+assert_equal (1<<31)-1, CFunc::SInt32.get(sint_ptr)
 
-CFunc::SInt32.set(sint_ptr, (2**32)/2)
-assert_not_equal (2**32)/2, sint.value
+CFunc::SInt32.set(sint_ptr, (1<<31))
+assert_not_equal (1<<31), sint.value
 
-CFunc::SInt32.set(sint_ptr, (-2**32)/2-1)
-assert_not_equal (-2**32)/2-1, sint.value
+sint.value = (-1<<31)
+assert_equal (-1<<31), sint.value
+assert_equal (-1<<31), CFunc::SInt32.get(sint_ptr)
+
+CFunc::SInt32.set(sint_ptr, (-1<<31)-1)
+assert_not_equal (-1<<31)-1, sint.value
