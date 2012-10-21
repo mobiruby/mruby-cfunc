@@ -8,6 +8,11 @@ Interface to C functions on mruby. it's based on [libffi](http://sourceware.org/
     make test
 
 
+## Limitation
+
+* mrb_int should be 64bit int (ex int64_t)
+
+
 ## Todo
 
 * Test!

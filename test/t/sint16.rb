@@ -31,4 +31,3 @@ assert_not_equal 32768, sint.value
 
 CFunc::SInt16.set(sint_ptr, -32769)
 assert_not_equal -32769, sint.value
-

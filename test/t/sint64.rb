@@ -23,10 +23,10 @@ assert_equal 1, CFunc::SInt64.refer(sint_ptr).value
   assert_equal idx, CFunc::SInt64.refer(sint_ptr).value
 end
 
-sint.value = 9223372036854775807 # MAX
-assert_equal 9223372036854775807, sint.value
-assert_equal 9223372036854775807, CFunc::SInt64.get(sint_ptr)
+sint.value = 0x7fffffff << 32 + 0xffffffff # 9223372036854775807 # MAX
+assert_equal 0x7fffffff << 32 + 0xffffffff, sint.value
+assert_equal 0x7fffffff << 32 + 0xffffffff, CFunc::SInt64.get(sint_ptr)
 
-sint.value = -9223372036854775808 # MIN
-assert_equal -9223372036854775808, sint.value
-assert_equal -9223372036854775808, CFunc::SInt64.get(sint_ptr)
+sint.value = -1 * (0x7fffffff << 32 + 0xffffffff) - 1 # -9223372036854775808 # MIN
+assert_equal -1 * (0x7fffffff << 32 + 0xffffffff) - 1, sint.value
+assert_equal -1 * (0x7fffffff << 32 + 0xffffffff) - 1, CFunc::SInt64.get(sint_ptr)

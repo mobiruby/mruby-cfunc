@@ -227,16 +227,27 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
 mrb_value
 cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
 {
-    mrb_raise(mrb, E_TYPE_ERROR, "unsigned 64bit value can't convert to Fixnum. Use low, high");
-    return mrb_nil_value(); // can't reach here
+    mrb_value pointer;
+    mrb_get_args(mrb, "o", &pointer);
+
+    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
+    uint64_t uint64 = *(uint64_t*)cfunc_pointer_ptr(pointer);
+
+    if(uint64 > MRB_INT_MAX) {
+        mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
+    }
+    return mrb_fixnum_value(uint64);
 }
 
 
 mrb_value
-cfunc_type_uint64_get_value(mrb_state *mrb, mrb_value self)
+cfunc_uint64_get_value(mrb_state *mrb, mrb_value self)
 {
-    mrb_raise(mrb, E_TYPE_ERROR, "unsigned 64bit value can't convert to Fixnum Use low, high");
-    return mrb_nil_value(); // can't reach here
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    if(data->value._uint64 > MRB_INT_MAX) {
+        mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
+    }
+    return mrb_fixnum_value(data->value._uint64);
 }
 
 
@@ -484,7 +495,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     // sint64 specific
     struct RClass *uint64_class = cfunc_state(mrb)->uint64_class;
     mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, ARGS_REQ(1));
-    mrb_define_method(mrb, uint64_class, "value", cfunc_type_uint64_get_value, ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "value", cfunc_uint64_get_value, ARGS_NONE());
     mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, ARGS_NONE());
     mrb_define_method(mrb, uint64_class, "low=", cfunc_uint64_set_low, ARGS_REQ(1));
     mrb_define_method(mrb, uint64_class, "high", cfunc_uint64_get_high, ARGS_NONE());
