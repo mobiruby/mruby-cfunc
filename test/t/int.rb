@@ -1,5 +1,5 @@
 assert_equal 4, CFunc::Int.size
-assert_equal 4, CFunc::Int.align
+assert 0 < CFunc::Int.align
 
 int = CFunc::Int.new
 

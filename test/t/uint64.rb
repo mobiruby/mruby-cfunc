@@ -10,7 +10,7 @@ end
 
 
 assert_equal 8, CFunc::UInt64.size
-assert_equal 8, CFunc::UInt64.align
+assert 0 < CFunc::UInt64.align
 
 uint = CFunc::UInt64.new
 

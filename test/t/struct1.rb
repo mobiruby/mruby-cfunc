@@ -5,7 +5,7 @@ class STest < CFunc::Struct
 end
 
 assert_equal 8, STest.size
-assert_equal 8, STest.align
+assert 0 < STest.align
 stest = STest.new
 
 stest[:x] = 10

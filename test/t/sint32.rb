@@ -1,5 +1,5 @@
 assert_equal 4, CFunc::SInt32.size
-assert_equal 4, CFunc::SInt32.align
+assert 0 < CFunc::SInt32.align
 
 sint = CFunc::SInt32.new
 

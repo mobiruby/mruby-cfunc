@@ -1,5 +1,5 @@
 assert_equal 8, CFunc::SInt64.size
-assert_equal 8, CFunc::SInt64.align
+assert 0 < CFunc::SInt64.align
 
 sint = CFunc::SInt64.new
 

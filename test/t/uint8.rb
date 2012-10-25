@@ -1,5 +1,5 @@
 assert_equal 1, CFunc::UInt8.size
-assert_equal 1, CFunc::UInt8.align
+assert 0 < CFunc::UInt8.align
 
 uint = CFunc::UInt8.new
 

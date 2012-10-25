@@ -1,5 +1,5 @@
 assert_equal 1, CFunc::SInt8.size
-assert_equal 1, CFunc::SInt8.align
+assert 0 < CFunc::SInt8.align
 
 sint = CFunc::SInt8.new
 
