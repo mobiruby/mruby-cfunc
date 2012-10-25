@@ -28,11 +28,11 @@ struct task_arg {
     union {
         mrb_float f;
         mrb_int i;
-        union {
+        struct {
             char* ptr;
             int len;
         } string;
-        union {
+        struct {
             struct task_arg **ptr;
             int len;
         } array;
@@ -46,7 +46,7 @@ struct queue_task {
 };
 
 
-struct task_arg* convert_to_task_arg(mrb_state *mrb, mrb_value v)
+struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 {
     struct task_arg *arg = malloc(sizeof(struct task_arg));
 
@@ -81,20 +81,16 @@ struct task_arg* convert_to_task_arg(mrb_state *mrb, mrb_value v)
 
     case MRB_TT_ARRAY:
         {
-            /*
-            struct RArray *a0, *a1;
-            int i;
+            struct RArray *ary = mrb_ary_ptr(v);
 
-            a0 = mrb_ary_ptr(v);
-            nv = mrb_ary_new_capa(mrb2, a0->len);
-            a1 = mrb_ary_ptr(nv);
-            for (i=0; i<a0->len; i++) {
-                int ai = mrb_gc_arena_save(mrb2);
-                a1->ptr[i] = migrate_simple_value(mrb, a0->ptr[i], mrb2);
-                a1->len++;
-                mrb_gc_arena_restore(mrb2, ai);
-            }*/
-                puts("TODO");
+            arg->value.array.len = ary->len;
+            printf("1a>len=%d,%d\n",ary->len,  arg->value.array.len);
+            arg->value.array.ptr = malloc(ary->len * sizeof(struct task_arg));
+            printf("1>len=%d,%d\n",ary->len,  arg->value.array.len);
+
+            for(int i=0; i<ary->len; i++) {
+                arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, ary->ptr[i]);
+            }
         }
         break;
 
@@ -133,20 +129,13 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
 
     case MRB_TT_ARRAY:
         {
-            /*
-            struct RArray *a0, *a1;
-            int i;
-
-            a0 = mrb_ary_ptr(v);
-            nv = mrb_ary_new_capa(mrb2, a0->len);
-            a1 = mrb_ary_ptr(nv);
-            for (i=0; i<a0->len; i++) {
-                int ai = mrb_gc_arena_save(mrb2);
-                a1->ptr[i] = migrate_simple_value(mrb, a0->ptr[i], mrb2);
-                a1->len++;
-                mrb_gc_arena_restore(mrb2, ai);
-            }*/
-                puts("TODO");
+            printf("2>len=%d\n",arg->value.array.len);
+            v = mrb_ary_new_capa(mrb, arg->value.array.len);
+            struct RArray *ary = mrb_ary_ptr(v);
+            ary->len = arg->value.array.len;
+            for(int i=0; i<arg->value.array.len; i++) {
+                ary->ptr[i] = task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]);
+            }
         }
         break;
 
@@ -209,6 +198,7 @@ cfunc_rubyvm_open(void *args)
 {
     struct cfunc_rubyvm_data *data = args;
     mrb_state *mrb = mrb_open();
+    data->state = mrb;
     int n = mrb_read_irep(mrb, data->mrb_data);
 
     mrb_run(mrb, mrb_proc_new(mrb, mrb->irep[n]), mrb_top_self(mrb));
@@ -265,7 +255,7 @@ cfunc_rubyvm_dispatch_async(mrb_state *mrb, mrb_value self)
     task->args_len = args_len;
     task->args = malloc(sizeof(struct task_arg) * task->args_len);
     for(int i=0; i<args_len; ++i) {
-        task->args[i] = convert_to_task_arg(mrb, args[i]);
+        task->args[i] = mrb_value_to_task_arg(mrb, args[i]);
     }
 
     pthread_mutex_lock(&data->mutex);
@@ -304,7 +294,6 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
     pthread_mutex_init(&data->mutex, NULL);
     pthread_cond_init(&data->cond, NULL);
     pthread_create(&data->thread, NULL, cfunc_rubyvm_open, (void*)data);
-//    pthread_join(data->thread, NULL);
 
     return self;
 }
