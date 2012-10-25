@@ -17,6 +17,3 @@ def sum(ary)
   result = ary.inject(0) { | sum, i | sum + i }
   puts "[#{ary.join(',')}].sum = #{result}"
 end
-
-
-puts "THREAD"

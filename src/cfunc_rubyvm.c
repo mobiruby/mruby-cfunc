@@ -84,9 +84,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
             struct RArray *ary = mrb_ary_ptr(v);
 
             arg->value.array.len = ary->len;
-            printf("1a>len=%d,%d\n",ary->len,  arg->value.array.len);
             arg->value.array.ptr = malloc(ary->len * sizeof(struct task_arg));
-            printf("1>len=%d,%d\n",ary->len,  arg->value.array.len);
 
             for(int i=0; i<ary->len; i++) {
                 arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, ary->ptr[i]);
@@ -129,7 +127,6 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
 
     case MRB_TT_ARRAY:
         {
-            printf("2>len=%d\n",arg->value.array.len);
             v = mrb_ary_new_capa(mrb, arg->value.array.len);
             struct RArray *ary = mrb_ary_ptr(v);
             ary->len = arg->value.array.len;
@@ -158,20 +155,10 @@ free_task_arg(struct task_arg* arg)
 
     case MRB_TT_ARRAY:
         {
-            /*
-            struct RArray *a0, *a1;
-            int i;
-
-            a0 = mrb_ary_ptr(v);
-            nv = mrb_ary_new_capa(mrb2, a0->len);
-            a1 = mrb_ary_ptr(nv);
-            for (i=0; i<a0->len; i++) {
-                int ai = mrb_gc_arena_save(mrb2);
-                a1->ptr[i] = migrate_simple_value(mrb, a0->ptr[i], mrb2);
-                a1->len++;
-                mrb_gc_arena_restore(mrb2, ai);
-            }*/
-                puts("TODO");
+            for(int i=0; i<arg->value.array.len; i++) {
+                free_task_arg(arg->value.array.ptr[i]);
+            }
+            free(arg->value.array.ptr);
         }
         break;
 
