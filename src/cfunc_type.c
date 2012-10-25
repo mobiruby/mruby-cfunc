@@ -47,7 +47,7 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
         }
         cls = cls->super;
     }
-    mrb_raise(mrb, E_TYPE_ERROR, "%s cannot convert to C value", mrb_class_name(mrb, cls_));
+    mrb_raisef(mrb, E_TYPE_ERROR, "%s cannot convert to C value", mrb_class_name(mrb, cls_));
     return NULL;
 }
 
@@ -202,7 +202,7 @@ mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
     else if(mrb_type(val) == MRB_TT_FLOAT) {
         return mrb_float(val);
     }
-    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+    mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
         mrb_obj_classname(mrb, val));
     return 0; // can't reach here
 }
@@ -217,7 +217,7 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
     else if(mrb_type(val) == MRB_TT_FLOAT) {
         return mrb_float(val);
     }
-    mrb_raise(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+    mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
         mrb_obj_classname(mrb, val));
     return 0.0; // can't reach here
 }

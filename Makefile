@@ -17,6 +17,7 @@ else ifeq ($(COMPILE_MODE),release)
 else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os
 endif
+CFLAGS += -pthread
 
 BASEDIR = $(shell pwd)
 INCLUDES = -I$(BASEDIR)/include
@@ -68,7 +69,7 @@ tmp/libffi:
 	cd tmp && git clone https://github.com/atgreen/libffi.git
 
 vendors/lib/libffi.a: tmp/libffi
-	cd tmp/libffi && ./configure --prefix=`pwd`/../../vendors && make install
+	cd tmp/libffi && ./configure --prefix=`pwd`/../../vendors && make clean install CFLAGS="$(CFLAGS)"
 	mkdir -p include/ffi
 	cp -r `pkg-config vendors/lib/pkgconfig/libffi.pc --cflags-only-I |sed -e "s/ /\/*/" | sed -e "s/-I/ /"` include/ffi
 
@@ -83,7 +84,7 @@ tmp/mruby:
 	sed -i -e "s/define MRB_INT_MAX INT_MAX/define MRB_INT_MAX INT64_MAX/g" tmp/mruby/include/mrbconf.h
 
 vendors/lib/libmruby.a: tmp/mruby
-	cd tmp/mruby && make
+	cd tmp/mruby && make clean && make all CFLAGS="$(CFLAGS)"
 	cp -r tmp/mruby/include vendors/
 	cp -r tmp/mruby/lib vendors/
 	cp -r tmp/mruby/bin vendors/

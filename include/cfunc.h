@@ -48,6 +48,7 @@ struct cfunc_state {
     struct RClass *pointer_class;
     struct RClass *struct_class;
     struct RClass *closure_class;
+    struct RClass *rubyvm_class;
 };
 
 void init_cfunc_module(mrb_state *mrb);

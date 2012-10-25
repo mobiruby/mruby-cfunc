@@ -4,9 +4,11 @@
 # project-specific macros
 # extension of the executable-file is modifiable(.exe .out ...)
 BASEDIR = .
-TESTSRCS := $(wildcard $(BASEDIR)/t/*.rb)
+REQUIRES := $(wildcard $(BASEDIR)/t/_*.rb)
+TESTSRCS := $(filter-out $(REQUIRES),$(wildcard $(BASEDIR)/t/*.rb))
 TESTOBJS := $(patsubst %.rb,%.o,$(TESTSRCS))
 TESTS := $(patsubst %.rb,%.exe,$(TESTSRCS))
+REQUIREOBJS := $(patsubst %.rb,%.o,$(REQUIRES))
 
 LIBR := $(BASEDIR)/../lib/libmruby-cfunc.a
 EXCEPT1 := $(MRBCSRC)
@@ -66,8 +68,9 @@ run : $(TESTS)
 	done
 
 # executable constructed using linker from object files
-$(TESTS) : %.exe : %.o
-	$(LL) $< -o $@ $(CFLAGS) $(LDFLAGS) $(LIBR) $(LIBFFI_LIBS) $(MRUBY_LIBS) $(LIBS) 
+$(TESTS) : %.exe : %.o $(REQUIREOBJS)
+	echo $(REQUIREOBJS)
+	$(LL) $< -o $@ $(REQUIREOBJS) $(CFLAGS) $(LDFLAGS) $(LIBR) $(LIBFFI_LIBS) $(MRUBY_LIBS) $(LIBS) 
 
 -include $(OBJS:.o=.d) $(OBJMRB:.o=.d)
 
@@ -79,6 +82,9 @@ $(TESTOBJS) : %.o : %.rb
 	cat $< | ruby -e 's=STDIN.read;print s.gsub(/.*#\s*BEGIN\s+C(.*)/m,"\\1") if s.match(/#\s*BEGIN\s+C/)' >> $(basename $<).c
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $(basename $<).c -o $@
 
+$(REQUIREOBJS) : %.o : %.rb
+	$(MRBC) -Bmruby_data_`basename $(basename $<)` $<
+	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $(basename $<).c -o $@
 
 # clean up
 .PHONY : clean #cleandep

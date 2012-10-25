@@ -11,6 +11,7 @@
 #include "cfunc_struct.h"
 #include "cfunc_closure.h"
 #include "cfunc_type.h"
+#include "cfunc_rubyvm.h"
 
 #include "mruby/proc.h"
 #include "mruby/dump.h"
@@ -44,6 +45,7 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_struct(mrb, ns);
     init_cfunc_closure(mrb, ns);
     init_cfunc_call(mrb, ns);
+    init_cfunc_rubyvm(mrb, ns);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
     

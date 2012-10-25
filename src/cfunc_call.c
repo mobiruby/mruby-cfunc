@@ -32,7 +32,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     void *fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
     
     if(fp == NULL) {
-        mrb_raise(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+        mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
         goto cfunc_call_exit;
     }
 
@@ -80,7 +80,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
     else {
-        mrb_raise(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
+        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
         goto cfunc_call_exit;
     }
 
