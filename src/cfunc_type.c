@@ -19,6 +19,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <inttypes.h>
+
 
 static void
 cfunc_type_destructor(mrb_state *mrb, void *p)
@@ -297,7 +299,7 @@ cfunc_uint64_to_s(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     char str[65];
-    snprintf(str, sizeof(str), "%lu", data->value._uint64);
+    snprintf(str, sizeof(str), "%" PRIu64, data->value._uint64);
     return mrb_str_new_cstr(mrb, str);
 }
 
