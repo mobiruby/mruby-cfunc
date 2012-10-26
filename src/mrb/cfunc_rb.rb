@@ -23,11 +23,13 @@ module CFunc
 
     class Type
         def to_i
-            self.value.to_i
+            val = self.value
+            val ? val.to_i : 0
         end
 
         def to_f
             self.value.to_f
+            val ? val.to_f : 0
         end
 
         def to_s

@@ -217,7 +217,7 @@ mrb_value
 cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
-    int offset;
+    mrb_int offset;
     mrb_get_args(mrb, "i", &offset);
 
     if(offset == 0) {

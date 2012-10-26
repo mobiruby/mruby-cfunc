@@ -198,14 +198,39 @@ cfunc_type_to_pointer(mrb_state *mrb, mrb_value self)
 static
 mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
 {
-    if(mrb_type(val) == MRB_TT_FIXNUM) {
+    switch(mrb_type(val)) {
+    case MRB_TT_FIXNUM:
         return mrb_fixnum(val);
-    }
-    else if(mrb_type(val) == MRB_TT_FLOAT) {
+     
+    case MRB_TT_FLOAT:
         return mrb_float(val);
+
+    case MRB_TT_FALSE:
+        return 0;
+
+    case MRB_TT_TRUE:
+        return 1;
+
+    case MRB_TT_DATA:
+    case MRB_TT_OBJECT:
+        {
+            mrb_value result = mrb_funcall(mrb, val, "to_i", 0);
+            switch(mrb_type(result)) {
+            case MRB_TT_FIXNUM:
+                return mrb_fixnum(result);
+             
+            case MRB_TT_FALSE:
+                return 0;
+
+            case MRB_TT_TRUE:
+                return 1;
+            }
+        }
+
+    default:
+        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+            mrb_obj_classname(mrb, val));
     }
-    mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-        mrb_obj_classname(mrb, val));
     return 0; // can't reach here
 }
 
@@ -213,14 +238,39 @@ mrb_int fixnum_value(mrb_state *mrb, mrb_value val)
 static
 mrb_float float_value(mrb_state *mrb, mrb_value val)
 {
-    if(mrb_type(val) == MRB_TT_FIXNUM) {
+    switch(mrb_type(val)) {
+    case MRB_TT_FIXNUM:
         return mrb_fixnum(val);
-    }
-    else if(mrb_type(val) == MRB_TT_FLOAT) {
+     
+    case MRB_TT_FLOAT:
         return mrb_float(val);
+
+    case MRB_TT_FALSE:
+        return 0.0;
+
+    case MRB_TT_TRUE:
+        return 1.0;
+
+    case MRB_TT_DATA:
+    case MRB_TT_OBJECT:
+        {
+            mrb_value result = mrb_funcall(mrb, val, "to_f", 0);
+            switch(mrb_type(result)) {
+            case MRB_TT_FLOAT:
+                return mrb_float(result);
+             
+            case MRB_TT_FALSE:
+                return 0.0;
+
+            case MRB_TT_TRUE:
+                return 1.0;
+            }
+        }
+        
+    default:
+        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
+            mrb_obj_classname(mrb, val));
     }
-    mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-        mrb_obj_classname(mrb, val));
     return 0.0; // can't reach here
 }
 
