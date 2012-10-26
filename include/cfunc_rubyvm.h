@@ -14,15 +14,17 @@
 
 struct cfunc_rubyvm_data {
     mrb_state *state;
+    void (*mrb_state_init)(mrb_state*);
+
     const char* mrb_data;
 
     pthread_t thread;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    pthread_mutex_t queue_mutex;
+    pthread_cond_t queue_cond;
 
     vector_p queue;
 };
 
-void init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module);
+void init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module, void (*mrb_state_init)(mrb_state*));
 
 #endif

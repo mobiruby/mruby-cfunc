@@ -1,19 +1,26 @@
-$action1_result = 0
+$action1_result = nil
 
-def action1a
-  puts "action1a"
+def sleep(sec)
+    CFunc::call CFunc::Void, "sleep", CFunc::Int(sec)
+    sec
+end
+
+def reset_action1
+  $action1_result = nil
+end
+
+def set_action1(v)
+  $action1_result = v
+end
+
+def get_action1
   $action1_result
 end
 
-def action1b(a)
-  puts "action1b: #{$action1_result += 1}, #{a*2}"
-end
-
-def puts_str(str)
-  puts str
+def class_name(v)
+  v.class.to_s
 end
 
 def sum(ary)
-  result = ary.inject(0) { | sum, i | sum + i }
-  puts "[#{ary.join(',')}].sum = #{result}"
+  ary.inject(0) { | sum, i | sum + i }
 end

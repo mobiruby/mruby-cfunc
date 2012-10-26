@@ -85,15 +85,22 @@ const char* assert_rb =
 "  ($ko_test + $kill_test) == 0" "\n"
 "end";
 
+static 
+void mrb_state_init(mrb_state *mrb)
+{
+    mrb->ud = malloc(sizeof(struct mrb_state_ud));
+    init_cfunc_module(mrb, mrb_state_init);
+}
+
+
 int main(int argc, char *argv[])
 {
     printf("%s: ", appname);
 
-    mrb_state *mrb = mrb_open();
-    mrb->ud = malloc(sizeof(struct mrb_state_ud));
-
     cfunc_state_offset = cfunc_offsetof(struct mrb_state_ud, cfunc_state);
-    init_cfunc_module(mrb);
+
+    mrb_state *mrb = mrb_open();
+    mrb_state_init(mrb);
 
     mrb_load_string(mrb, assert_rb);
     if (mrb->exc) {

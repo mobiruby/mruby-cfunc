@@ -39,10 +39,25 @@ struct task_arg {
     } value;
 };
 
+
 struct queue_task {
     char* name;
+    enum queue_task_status {
+        queue_task_queued,
+        queue_task_running,
+        queue_task_finished
+    } status;
+
     struct task_arg **args;
     int args_len;
+
+    struct task_arg *result;
+
+    bool sync;
+    pthread_mutex_t sync_mutex;
+    pthread_cond_t sync_cond;
+
+    int refcount;
 };
 
 
@@ -147,6 +162,9 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
 void
 free_task_arg(struct task_arg* arg)
 {
+    if(!arg) {
+        return;
+    }
     switch (arg->tt) {
     case MRB_TT_SYMBOL:
     case MRB_TT_STRING:
@@ -165,8 +183,24 @@ free_task_arg(struct task_arg* arg)
     default:
         break;
     }
-
 }
+
+
+void
+free_queue_task(struct queue_task* task)
+{
+    task->refcount--;
+    if(task->refcount < 1) {
+        for(int i=0; i<task->args_len; ++i) {
+            free_task_arg(task->args[i]);
+        }
+        free(task->args);
+        free(task->result);
+        free(task->name);
+        free(task);
+    }
+}
+
 
 
 static void
@@ -180,12 +214,30 @@ const struct mrb_data_type cfunc_rubyvm_data_type = {
     "cfunc_rubyvm", cfunc_rubyvm_data_destructor,
 };
 
+
+
+
+static void
+cfunc_rubyvm_task_data_destructor(mrb_state *mrb, void *p)
+{
+    free_queue_task((struct queue_task*)p);
+};
+
+
+const struct mrb_data_type cfunc_rubyvm_task_data_type = {
+    "cfunc_rubyvm_task", cfunc_rubyvm_task_data_destructor,
+};
+
+
 void*
 cfunc_rubyvm_open(void *args)
 {
     struct cfunc_rubyvm_data *data = args;
     mrb_state *mrb = mrb_open();
     data->state = mrb;
+    
+    data->mrb_state_init(mrb);
+
     int n = mrb_read_irep(mrb, data->mrb_data);
 
     mrb_run(mrb, mrb_proc_new(mrb, mrb->irep[n]), mrb_top_self(mrb));
@@ -195,28 +247,31 @@ cfunc_rubyvm_open(void *args)
     }
 
     while(true) {
-        pthread_mutex_lock(&data->mutex);
+        pthread_mutex_lock(&data->queue_mutex);
+
         while(data->queue->length == 0) {
-            pthread_cond_wait(&data->cond, &data->mutex);
+            pthread_cond_wait(&data->queue_cond, &data->queue_mutex);
         }
         
         struct queue_task *task = vector_dequeue(data->queue);
+        task->status = queue_task_running;
         mrb_sym taskname = mrb_intern(mrb, task->name);
 
         int args_len = task->args_len;
         mrb_value *args = malloc(sizeof(struct task_arg) * task->args_len);
         for(int i=0; i<task->args_len; ++i) {
             args[i] = task_arg_to_mrb_value(data->state, task->args[i]);
-            free_task_arg(task->args[i]);
         }
-        free(task->args);
-        free(task->name);
-        free(task);
 
-        pthread_mutex_unlock(&data->mutex);
+        pthread_mutex_unlock(&data->queue_mutex);
 
-        mrb_funcall_argv(mrb, mrb_top_self(data->state), taskname, args_len, args);
+        mrb_value result = mrb_funcall_argv(mrb, mrb_top_self(data->state), taskname, args_len, args);
+        task->result = mrb_value_to_task_arg(mrb, result);
+        task->status = queue_task_finished;
+        pthread_cond_signal(&task->sync_cond);
+
         free(args);
+        free_queue_task(task);
     }
 
     return NULL;
@@ -224,7 +279,7 @@ cfunc_rubyvm_open(void *args)
 
 
 mrb_value
-cfunc_rubyvm_dispatch_async(mrb_state *mrb, mrb_value self)
+cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_rubyvm_data *data = mrb_get_datatype(mrb, self, &cfunc_rubyvm_data_type);
 
@@ -233,6 +288,12 @@ cfunc_rubyvm_dispatch_async(mrb_state *mrb, mrb_value self)
     mrb_get_args(mrb, "o*", &name_obj, &args, &args_len);
 
     struct queue_task *task = malloc(sizeof(struct queue_task));
+    task->refcount = 2;
+    task->result = NULL;
+    task->status = queue_task_queued;
+
+    pthread_mutex_init(&task->sync_mutex, NULL);
+    pthread_cond_init(&task->sync_cond, NULL);
 
     const char* name = mrb_string_value_ptr(mrb, name_obj);
     int name_len = strlen(name);
@@ -245,12 +306,42 @@ cfunc_rubyvm_dispatch_async(mrb_state *mrb, mrb_value self)
         task->args[i] = mrb_value_to_task_arg(mrb, args[i]);
     }
 
-    pthread_mutex_lock(&data->mutex);
+    pthread_mutex_lock(&data->queue_mutex);
     vector_enqueue(data->queue, task);
-    pthread_cond_signal(&data->cond);
-    pthread_mutex_unlock(&data->mutex);
+    pthread_cond_signal(&data->queue_cond);
+    pthread_mutex_unlock(&data->queue_mutex);
 
-    return mrb_nil_value();
+    return mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, cfunc_state(mrb)->rubyvm_task_class, &cfunc_rubyvm_task_data_type, task));
+}
+
+
+mrb_value
+cfunc_rubyvm_task_status(mrb_state *mrb, mrb_value self)
+{
+    struct queue_task *task = DATA_PTR(self);
+    return mrb_fixnum_value(task->status);
+}
+
+
+mrb_value
+cfunc_rubyvm_task_result(mrb_state *mrb, mrb_value self)
+{
+    struct queue_task *task = DATA_PTR(self);
+    return task_arg_to_mrb_value(mrb, task->result);
+}
+
+
+mrb_value
+cfunc_rubyvm_task_wait(mrb_state *mrb, mrb_value self)
+{
+    struct queue_task *task = DATA_PTR(self);
+    if(task->status == queue_task_queued || task->status == queue_task_running) {
+        pthread_mutex_lock(&task->sync_mutex);
+        pthread_cond_wait(&task->sync_cond, &task->sync_mutex);
+        pthread_mutex_unlock(&task->sync_mutex);
+    }
+
+    return task_arg_to_mrb_value(mrb, task->result);
 }
 
 
@@ -260,6 +351,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
     // init bindle data with RubyVM object
     struct RClass *c = mrb_class_ptr(klass);
     struct cfunc_rubyvm_data *data = malloc(sizeof(struct cfunc_rubyvm_data));
+    data->mrb_state_init = cfunc_state(mrb)->mrb_state_init;
     mrb_value self = mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_rubyvm_data_type, data));
 
     // load script
@@ -278,8 +370,8 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 
     // initial pthread
     data->queue = create_vector();
-    pthread_mutex_init(&data->mutex, NULL);
-    pthread_cond_init(&data->cond, NULL);
+    pthread_mutex_init(&data->queue_mutex, NULL);
+    pthread_cond_init(&data->queue_cond, NULL);
     pthread_create(&data->thread, NULL, cfunc_rubyvm_open, (void*)data);
 
     return self;
@@ -287,11 +379,24 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 
 
 void
-init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module)
+init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module, void (*mrb_state_init)(mrb_state*))
 {
+    cfunc_state(mrb)->mrb_state_init = mrb_state_init;
+
     struct RClass *rubyvm_class = mrb_define_class_under(mrb, module, "RubyVM", mrb->object_class);
     cfunc_state(mrb)->rubyvm_class = rubyvm_class;
-    
+
     mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, ARGS_REQ(1));
-    mrb_define_method(mrb, rubyvm_class, "dispatch_async", cfunc_rubyvm_dispatch_async, ARGS_ANY());
+    mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, ARGS_ANY());
+
+    struct RClass *rubyvm_task_class = mrb_define_class_under(mrb, cfunc_state(mrb)->rubyvm_class, "Task", mrb->object_class);
+    cfunc_state(mrb)->rubyvm_task_class = rubyvm_task_class;
+
+    mrb_define_method(mrb, rubyvm_task_class, "wait", cfunc_rubyvm_task_wait, ARGS_NONE());
+    mrb_define_method(mrb, rubyvm_task_class, "result", cfunc_rubyvm_task_result, ARGS_NONE());
+    mrb_define_method(mrb, rubyvm_task_class, "status", cfunc_rubyvm_task_status, ARGS_NONE());
+
+    mrb_define_const(mrb, rubyvm_task_class, "QUEUED", mrb_fixnum_value(queue_task_queued));
+    mrb_define_const(mrb, rubyvm_task_class, "RUNNING", mrb_fixnum_value(queue_task_running));
+    mrb_define_const(mrb, rubyvm_task_class, "FINISHED", mrb_fixnum_value(queue_task_finished));
 }

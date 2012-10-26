@@ -49,9 +49,12 @@ struct cfunc_state {
     struct RClass *struct_class;
     struct RClass *closure_class;
     struct RClass *rubyvm_class;
+    struct RClass *rubyvm_task_class;
+
+    void (*mrb_state_init)(mrb_state*);
 };
 
-void init_cfunc_module(mrb_state *mrb);
+void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*));
 
 /* offset of cfunc_state in mrb->ud */
 extern size_t cfunc_state_offset;

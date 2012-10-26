@@ -35,7 +35,7 @@ cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
 }
 
 
-void init_cfunc_module(mrb_state *mrb)
+void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*))
 {
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     cfunc_state(mrb)->namespace = ns;
@@ -45,7 +45,7 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_struct(mrb, ns);
     init_cfunc_closure(mrb, ns);
     init_cfunc_call(mrb, ns);
-    init_cfunc_rubyvm(mrb, ns);
+    init_cfunc_rubyvm(mrb, ns, mrb_state_init);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
     
