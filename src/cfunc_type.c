@@ -246,10 +246,15 @@ mrb_value
 cfunc_uint64_get_value(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    if(data->value._uint64 > MRB_INT_MAX) {
+    uint64_t uint64 = data->value._uint64;
+    if(data->refer) {
+        uint64 = *(uint64_t*)data->value._pointer;
+    }
+    if(uint64 > MRB_INT_MAX) {
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
-    return mrb_fixnum_value(data->value._uint64);
+
+    return mrb_fixnum_value(uint64);
 }
 
 
