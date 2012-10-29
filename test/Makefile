@@ -92,3 +92,4 @@ clean :
 	@echo "make: removing targets, objects and depend files of `pwd`"
 	-$(RM_F) $(TESTS) $(TESTOBJS) $(TESTS)
 	-$(RM_F) $(TESTOBJS:.o=.d) $(TESTOBJS:.o=.c)
+	-$(RM_F) $(REQUIRES:.rb=.d) $(REQUIRES:.rb=.c) $(REQUIRES:.rb=.o)

@@ -47,12 +47,15 @@ export CAT := cat
 # generic build targets, rules
 
 .PHONY : all
-all : vendors/lib/libffi.a vendors/lib/libmruby.a
+all: lib/libmruby-cfunc.a
+
+lib/libmruby-cfunc.a : vendors/lib/libffi.a vendors/lib/libmruby.a
 	@$(MAKE) -C src $(MAKE_FLAGS)
 
 # mruby test
 .PHONY : test
-test : all
+test : lib/libmruby-cfunc.a 
+	@$(MAKE) -C src $(MAKE_FLAGS)
 	@$(MAKE) -C test $(MAKE_FLAGS) run
 
 # clean up

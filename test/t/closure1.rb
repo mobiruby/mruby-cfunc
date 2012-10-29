@@ -1,9 +1,11 @@
+val = 5
 closure = CFunc::Closure.new(CFunc::Int, [CFunc::Int, CFunc::Int]) do |a, b|
-  a.value * b.value
+  a.to_i * b.to_i * val
 end
 
 result = CFunc::call(CFunc::Int, "cfunc_test_func3", closure)
-assert_equal 200, result.value
+assert_equal 10*20*5, result.to_i
+
 
 ############
 # BEGIN C

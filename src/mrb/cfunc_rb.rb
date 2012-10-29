@@ -28,7 +28,7 @@ module CFunc
         end
 
         def to_f
-            self.value.to_f
+            val = self.value
             val ? val.to_f : 0
         end
 

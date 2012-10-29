@@ -6,9 +6,9 @@ end
 
 stest = STest.new
 
-stest[:x] = 10
-stest[:y] = 20
-stest[:z] = 0
+assert_equal 10, stest[:x] = 10
+assert_equal 20, stest[:y] = 20
+assert_equal 0, stest[:z] = 0
 
 result = CFunc::call(STest, "cfunc_test_func1", stest)
 
@@ -20,6 +20,7 @@ assert_equal 30, result[:z]
 
 ############
 # BEGIN C
+
 struct STest {
     int8_t x;
     int16_t y;

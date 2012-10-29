@@ -8,3 +8,4 @@ end
 for i in 0..9
   assert_equal i ** 2, ci[i].value
 end
+
