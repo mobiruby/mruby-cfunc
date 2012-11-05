@@ -86,7 +86,7 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
             }
         }
     }
-    
+
     mrb_raise(mrb, E_SCRIPT_ERROR, "Internal FFI call error");
     return mrb_nil_value();
 }
@@ -105,7 +105,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
         // TODO: I felt too much consume memory
         void *p = malloc(data->arg_ffi_types[i]->size);
         memcpy(p, args[i], data->arg_ffi_types[i]->size);
-        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, false);//true);//debug
+        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
         ary[i] = mrb_funcall(data->mrb, data->arg_types[i], "refer", 1, pointer);
     }
 
@@ -115,7 +115,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
     // Hack for https://github.com/mruby/mruby/issues/362
     static jmp_buf jmp;
     data->mrb->jmp = & jmp;
-    if (setjmp( *(jmp_buf*) data->mrb->jmp ) == 0) {
+    if (setjmp(*(jmp_buf*)data->mrb->jmp) == 0) {
         result = mrb_funcall_argv(data->mrb, block, mrb_intern(data->mrb, "call"), data->argc, ary);
     }
     else {

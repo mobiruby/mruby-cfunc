@@ -82,9 +82,11 @@ vendors/lib/libffi.a: tmp/libffi
 tmp/mruby:
 	mkdir -p tmp/mruby
 	cd tmp; git clone https://github.com/mruby/mruby.git
-	sed -i -e "s/typedef int mrb_int/typedef int64_t mrb_int/g" tmp/mruby/include/mrbconf.h
-	sed -i -e "s/define MRB_INT_MIN INT_MIN/define MRB_INT_MIN INT64_MIN/g" tmp/mruby/include/mrbconf.h
-	sed -i -e "s/define MRB_INT_MAX INT_MAX/define MRB_INT_MAX INT64_MAX/g" tmp/mruby/include/mrbconf.h
+	sed -i -e "s/typedef int mrb_int/typedef int64_t mrb_int/" tmp/mruby/include/mrbconf.h
+	sed -i -e "s/define MRB_INT_MIN INT_MIN/define MRB_INT_MIN INT64_MIN/" tmp/mruby/include/mrbconf.h
+	sed -i -e "s/define MRB_INT_MAX INT_MAX/define MRB_INT_MAX INT64_MAX/" tmp/mruby/include/mrbconf.h
+	sed -i -e "s/define mrb_int_to_str(buf, i) sprintf((buf), \"%d\", (i))/define mrb_int_to_str(buf, i) sprintf((buf), \"%ld\", (i))/" tmp/mruby/include/mrbconf.h
+	sed -i -e "s/str_to_mrb_int(buf) (mrb_int)strtol((buf), NULL, 10)/str_to_mrb_int(buf) (mrb_int)strtoll((buf), NULL, 10)/" tmp/mruby/include/mrbconf.h
 
 vendors/lib/libmruby.a: tmp/mruby
 	cd tmp/mruby && make clean && make all CFLAGS="$(CFLAGS)"

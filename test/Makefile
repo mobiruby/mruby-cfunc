@@ -68,7 +68,7 @@ run : $(TESTS)
 	done
 
 # executable constructed using linker from object files
-$(TESTS) : %.exe : %.o $(REQUIREOBJS)
+$(TESTS) : %.exe : %.o $(REQUIREOBJS) $(LIBR)
 	echo $(REQUIREOBJS)
 	$(LL) $< -o $@ $(REQUIREOBJS) $(CFLAGS) $(LDFLAGS) $(LIBR) $(LIBFFI_LIBS) $(MRUBY_LIBS) $(LIBS) 
 
@@ -90,6 +90,6 @@ $(REQUIREOBJS) : %.o : %.rb
 .PHONY : clean #cleandep
 clean :
 	@echo "make: removing targets, objects and depend files of `pwd`"
-	-$(RM_F) $(TESTS) $(TESTOBJS) $(TESTS)
+	-$(RM_F) $(TESTS) $(TESTOBJS) $(TESTOBJS:.o=.exe)
 	-$(RM_F) $(TESTOBJS:.o=.d) $(TESTOBJS:.o=.c)
 	-$(RM_F) $(REQUIRES:.rb=.d) $(REQUIRES:.rb=.c) $(REQUIRES:.rb=.o)

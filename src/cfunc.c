@@ -37,6 +37,10 @@ cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
 
 void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*))
 {
+    if(sizeof(mrb_int) < 8) {
+        fprintf(stderr, "mruby-cfunc require 64bit for mrb_int.");
+    }
+
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     cfunc_state(mrb)->namespace = ns;
 

@@ -74,11 +74,13 @@ class String
     end
 end
 
+$klasses = []
 module CFunc
     def self.Pointer(type)
         return Pointer if Void == type
         klass = ::Class.new(Pointer)
         klass.type = type
+        $klasses << klass
         klass
     end
 end

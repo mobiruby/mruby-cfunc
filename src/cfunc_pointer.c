@@ -164,17 +164,17 @@ mrb_value
 cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
-    char cstr[256];
-    mrb_value str;
     
-    const char* classname = mrb_obj_classname(mrb, self);
+    mrb_value type = mrb_funcall(mrb, mrb_obj_value(mrb_class(mrb, self)), "type", 0);
+    const char* classname = mrb_class_name(mrb, mrb_object(type));
     if(!classname) {
         classname = "Unknown pointer";
     }
-    snprintf(cstr, sizeof(cstr), "<%s=%p>", classname, get_cfunc_pointer_data(data));
-    str = mrb_str_new2(mrb, cstr);
+
+    char cstr[256];
+    snprintf(cstr, sizeof(cstr), "<%s pointer=%p>", classname, get_cfunc_pointer_data(data));
     
-    return str;
+    return mrb_str_new2(mrb, cstr);
 }
 
 
