@@ -38,6 +38,40 @@ module CFunc
     end
 end
 
+
+module CFunc
+    class FunctionPointer < Pointer
+        attr_accessor :result_type, :arguments_type
+
+        def call(*args)
+            @result_type ||= CFunc::Void
+            @arguments_type.each_with_index do |arg_type, idx|
+                unless args[idx].is_a?(String) || args[idx].respond_to?(:to_pointer)
+                    args[idx] = arg_type.new(args[idx])
+                end
+            end
+            
+            CFunc::call(@result_type, self, *args)
+        end
+    end
+
+    def self.define_function(result_type, funcname, *args)
+        @dlh ||= CFunc::call(CFunc::Pointer, :dlopen, nil, nil)
+        @dlsym_func ||= CFunc::call(CFunc::Pointer, :dlsym, @dlh, "dlsym")
+
+        funcptr = FunctionPointer.new(CFunc::call(CFunc::Pointer, @dlsym_func, @dlh, funcname))
+        funcptr.result_type = result_type
+        funcptr.arguments_type = args
+
+        @funcptrs ||= Hash.new
+        @funcptrs[funcname.to_sym] = funcptr
+    end
+
+    def self.[](funcname)
+        @funcptrs[funcname.to_sym]
+    end
+end
+
 class CFunc::Pointer
     class << self
         def type

@@ -27,9 +27,16 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     ffi_type **args = NULL;
     
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
-        
-    void *dlh = dlopen(NULL, RTLD_LAZY);
-    void *fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
+    
+    void *fp = NULL;
+    if(mrb_string_p(mname) || mrb_symbol_p(mname)) {
+        void *dlh = dlopen(NULL, RTLD_LAZY);
+        fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
+        dlclose(dlh);
+    }
+    else {
+        fp = cfunc_pointer_ptr(mname);
+    }
     
     if(fp == NULL) {
         mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
