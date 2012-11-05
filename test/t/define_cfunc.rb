@@ -1,5 +1,5 @@
 CFunc::define_function CFunc::Pointer, "strcpy", CFunc::Pointer, CFunc::Pointer
-CFunc::define_function CFunc::Pointer, "strcat", CFunc::Pointer, CFunc::Pointer
+CFunc::define_function CFunc::Pointer, "strcat"
 CFunc::define_function CFunc::Int, "cfunc_test_func1", CFunc::Int, CFunc::Int
 
 ptr = CFunc::Pointer.malloc(12)
