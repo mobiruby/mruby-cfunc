@@ -9,7 +9,6 @@ assert_equal 10, array.size
   array[i].value = v
 end
 
-GC.start
 CFunc::call(CFunc::Void, "qsort", array, CFunc::Int(10), CFunc::Int(CFunc::Int.size), compar)
 
 [-99, -1, 0, 1, 3, 5, 8, 10, 23, 99].each_with_index do |v, i|
