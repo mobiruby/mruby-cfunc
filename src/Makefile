@@ -34,6 +34,7 @@ else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os
 endif
 
+MRUBY_CFLAGS = -D MRB_INT64
 ALL_CFLAGS = -Wall -Werror-implicit-function-declaration -std=c99 $(CFLAGS) $(MRUBY_CFLAGS) $(LIBFFI_CFLAGS)
 
 
