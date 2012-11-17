@@ -136,10 +136,9 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_realloc(mrb_state *mrb, mrb_value self)
 {
-    mrb_int alloc_size;
     struct cfunc_type_data *data = DATA_PTR(self);
     
-    cfunc_pointer_destructor(mrb, data);
+    mrb_int alloc_size;
     mrb_get_args(mrb, "i", &alloc_size);
     set_cfunc_pointer_data(data, realloc(get_cfunc_pointer_data(data), alloc_size));
     
