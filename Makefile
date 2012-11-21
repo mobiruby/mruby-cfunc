@@ -2,8 +2,9 @@
 # basic build file for mruby
 
 # compiler, linker (gcc), archiver, parser generator
-export CC = gcc
-export LL = gcc
+CC = gcc
+LL = gcc
+LIBFFI_VERSION = 3.0.11
 
 ifeq ($(strip $(COMPILE_MODE)),)
   # default compile option
@@ -20,12 +21,12 @@ endif
 CFLAGS += -pthread
 
 BASEDIR = $(shell pwd)
-INCLUDES = -I$(BASEDIR)/include
+INCLUDES = -I$(BASEDIR)/include -I$(BASEDIR)/vendors/include
 
 MRUBY_CFLAGS = -I$(BASEDIR)/vendors/include
 MRUBY_LIBS = -L$(BASEDIR)/vendors/lib -lmruby
 
-LIBFFI_CFLAGS = $(shell pkg-config $(BASEDIR)/vendors/lib/pkgconfig/libffi.pc --cflags)
+LIBFFI_CFLAGS = -I$(BASEDIR)/vendors/lib/libffi-$(LIBFFI_VERSION)/include/
 LIBFFI_LIBS = $(BASEDIR)/vendors/lib/libffi.a
 
 ALL_CFLAGS = $(CFLAGS) $(INCLUDES) $(MRUBY_CFLAGS)
@@ -73,8 +74,6 @@ tmp/libffi:
 
 vendors/lib/libffi.a: tmp/libffi
 	cd tmp/libffi && ./configure --prefix=`pwd`/../../vendors && make clean install CFLAGS="$(CFLAGS)"
-	mkdir -p include/ffi
-	cp -r `pkg-config vendors/lib/pkgconfig/libffi.pc --cflags-only-I |sed -e "s/ /\/*/" | sed -e "s/-I/ /"` include/ffi
 
 
 ##################
