@@ -110,17 +110,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
     }
 
     mrb_value block = mrb_iv_get(data->mrb, self, mrb_intern(data->mrb, "@block"));
-    mrb_value result;
-
-    // Hack for https://github.com/mruby/mruby/issues/362
-    static jmp_buf jmp;
-    data->mrb->jmp = & jmp;
-    if (setjmp(*(jmp_buf*)data->mrb->jmp) == 0) {
-        result = mrb_funcall_argv(data->mrb, block, mrb_intern(data->mrb, "call"), data->argc, ary);
-    }
-    else {
-        mrb_p(data->mrb, mrb_obj_value(data->mrb->exc));
-    }
+    mrb_value result = mrb_funcall_argv(data->mrb, block, mrb_intern(data->mrb, "call"), data->argc, ary);
     free(ary);
 
     mrb_value ret_pointer = cfunc_pointer_new_with_pointer(data->mrb, ret, false);
