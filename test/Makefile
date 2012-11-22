@@ -63,9 +63,14 @@ run : $(TESTS)
 	@echo "*** Start tests ***"
 	@echo
 	@for command in $(TESTS) ; do \
-	    $$command || exit 1 ; \
-	    echo ; \
+	    if $$command ; then \
+		    echo ; \
+	    else \
+			echo "*** Failed tests ***" ; \
+	    	exit 1 ; \
+	    fi ; \
 	done
+	@echo "*** Passed tests ***"
 
 # executable constructed using linker from object files
 $(TESTS) : %.exe : %.o $(REQUIREOBJS) $(LIBR)
