@@ -243,7 +243,7 @@ class NilClass
     end
 end
 
-$mruby_cfunc_true_pointer = CFunc::Int(-1).to_pointer
+$mruby_cfunc_true_pointer = CFunc::Int(1).to_pointer
 class TrueClass
     def to_pointer
         $mruby_cfunc_true_pointer
