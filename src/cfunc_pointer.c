@@ -317,7 +317,7 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
 {
     struct RClass *pointer_class = mrb_define_class_under(mrb, module, "Pointer", cfunc_state(mrb)->type_class);
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_pointer_ffi_data_type, &pointer_mrb_ffi_type));
-    mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern(mrb, "ffi_type"), ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
     cfunc_state(mrb)->pointer_class = pointer_class;
 
     mrb_define_class_method(mrb, pointer_class, "refer", cfunc_pointer_refer, ARGS_REQ(1));
@@ -335,5 +335,5 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
     
     // add method to system classes
     mrb_define_method(mrb, mrb->string_class, "to_pointer", cfunc_string_to_pointer, ARGS_NONE());
-    mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern(mrb, "ffi_type"), ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
 }

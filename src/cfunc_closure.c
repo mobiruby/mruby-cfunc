@@ -172,7 +172,7 @@ init_cfunc_closure(mrb_state *mrb, struct RClass* module)
     cfunc_state(mrb)->closure_class = closure_class;
 
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_data_type, &closure_mrb_ffi_type));
-    mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern(mrb, "ffi_type"), ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
 
     mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, ARGS_ANY());
 }

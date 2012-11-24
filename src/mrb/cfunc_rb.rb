@@ -1,10 +1,10 @@
 class CFunc::Type
-    def to_ffi_type
-        self.class.to_ffi_type
-    end
-
     def to_ffi_value(ffi_type)
         self.to_pointer
+    end
+
+    def self.ffi_type
+        @ffi_type
     end
 end
 
@@ -237,9 +237,9 @@ class NilClass
     def to_pointer
         $mruby_cfunc_null_pointer
     end
-
+    
     def to_ffi_value(ffi_type)
-        $mruby_cfunc_null_pointer
+        self.to_pointer
     end
 end
 
@@ -250,8 +250,11 @@ class TrueClass
     end
 
     def to_ffi_value(ffi_type)
-        $mruby_cfunc_true_pointer
+        self.to_pointer
     end
+end
+TrueClass.instance_eval do
+    @ffi_type = CFunc::Int.ffi_type
 end
 
 $mruby_cfunc_false_pointer = CFunc::Int(0).to_pointer
@@ -259,8 +262,11 @@ class FalseClass
     def to_pointer
         $mruby_cfunc_false_pointer
     end
-
+    
     def to_ffi_value(ffi_type)
-        $mruby_cfunc_false_pointer
+        self.to_pointer
     end
+end
+FalseClass.instance_eval do
+    @ffi_type = CFunc::Int.ffi_type
 end

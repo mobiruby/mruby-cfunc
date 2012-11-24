@@ -43,7 +43,7 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
 {
     struct RClass *cls_ = cls;
     while(cls) {
-        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern(mrb, "ffi_type"));
+        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern(mrb, "@ffi_type"));
         if(mrb_test(ffi_type)) {
             return (struct mrb_ffi_type*)DATA_PTR(ffi_type);
         }
@@ -59,6 +59,11 @@ mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
 {
     if(mrb_nil_p(val)) {
         return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb)->pointer_class);
+    }
+    switch(mrb_type(val)) {
+        case MRB_TT_TRUE:
+        case MRB_TT_FALSE:
+           return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb)->sint32_class);
     }
     return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
 }
@@ -530,7 +535,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     for(int i = 0; i < map_size; ++i) {
         struct RClass *new_class = mrb_define_class_under(mrb, module, types[i].name, type_class);
         mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_class_ffi_data_type, &types[i]));
-        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern(mrb, "ffi_type"), ffi_type);
+        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
     }
     
     mrb_value mod = mrb_obj_value(module);
