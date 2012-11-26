@@ -1,6 +1,8 @@
 assert_equal 1, CFunc::SInt8.size
 assert 0 < CFunc::SInt8.align
 
+assert_equal 16, CFunc::SInt8.new(16).to_i
+
 sint = CFunc::SInt8.new
 
 sint.value = 1

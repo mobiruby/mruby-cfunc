@@ -1,6 +1,8 @@
 assert_equal 2, CFunc::UInt16.size
 assert 0 < CFunc::UInt16.align
 
+assert_equal 16, CFunc::UInt16.new(16).to_i
+
 uint = CFunc::UInt16.new
 
 uint.value = 1

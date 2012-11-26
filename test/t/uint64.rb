@@ -1,19 +1,9 @@
-def assert_raise(*exps, &block)
-  flg = false # escape https://github.com/mruby/mruby/issues/497
-  begin
-    yield
-  rescue => e
-    flg = true if exps.include?(e.class)
-  end
-  assert(flg, "Didn't raise #{exps}")
-end
-
-
 assert_equal 8, CFunc::UInt64.size
 assert 0 < CFunc::UInt64.align
 
-uint = CFunc::UInt64.new
+assert_equal 16, CFunc::UInt64.new(16).to_i
 
+uint = CFunc::UInt64.new
 
 uint.value = 1
 assert_equal 1, uint.low
