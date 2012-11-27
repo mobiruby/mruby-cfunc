@@ -34,3 +34,5 @@ assert_not_equal 128, sint.value
 CFunc::SInt8.set(sint_ptr, -129)
 assert_not_equal -129, sint.value
 
+sint = CFunc::SInt8.new(CFunc::SInt16.new(16))
+assert_equal 16, sint.value

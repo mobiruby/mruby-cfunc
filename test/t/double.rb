@@ -24,3 +24,6 @@ end
 
 dbl.value = 128.256
 assert_equal 128.256, CFunc::Double.get(dbl_ptr)
+
+dbl = CFunc::Double.new(CFunc::Double.new(16.45))
+assert_equal 16.45, dbl.value

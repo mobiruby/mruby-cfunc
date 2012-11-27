@@ -25,3 +25,6 @@ assert_equal 123, CFunc::Int.get(int_ptr)
 
 CFunc::Int.set(int_ptr, 456)
 assert_equal 456, int.value
+
+int = CFunc::Int.new(CFunc::SInt16.new(16))
+assert_equal 16, int.value

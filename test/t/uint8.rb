@@ -31,3 +31,5 @@ assert_not_equal 256, uint.value
 CFunc::UInt8.set(UInt_ptr, -1)
 assert_not_equal -1, uint.value
 
+uint = CFunc::UInt8.new(CFunc::SInt16.new(16))
+assert_equal 16, uint.value

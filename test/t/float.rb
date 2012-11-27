@@ -24,3 +24,6 @@ end
 
 flt.value = 0.0625
 assert_equal 0.0625, CFunc::Float.get(flt_ptr)
+
+flt = CFunc::Float.new(CFunc::Double.new(16.25))
+assert_equal 16.25, flt.value

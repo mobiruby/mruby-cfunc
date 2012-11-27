@@ -36,3 +36,6 @@ assert_equal (-1<<31), CFunc::SInt32.get(sint_ptr)
 
 CFunc::SInt32.set(sint_ptr, (-1<<31)-1)
 assert_not_equal (-1<<31)-1, sint.value
+
+sint = CFunc::SInt32.new(CFunc::SInt16.new(16))
+assert_equal 16, sint.value

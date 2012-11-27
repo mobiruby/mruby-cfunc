@@ -32,3 +32,6 @@ assert_equal (0x7fffffff << 32) + 0xffffffff, CFunc::SInt64.get(sint_ptr)
 sint.value = -1 * ((0x7fffffff << 32) + 0xffffffff) - 1 # -9223372036854775808 # MIN
 assert_equal -1 * ((0x7fffffff << 32) + 0xffffffff) - 1, sint.value
 assert_equal -1 * ((0x7fffffff << 32) + 0xffffffff) - 1, CFunc::SInt64.get(sint_ptr)
+
+sint = CFunc::SInt64.new(CFunc::SInt16.new(16))
+assert_equal 16, sint.value

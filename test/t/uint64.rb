@@ -22,3 +22,6 @@ assert_equal "4294967298", uint.to_s
 uint_ptr = uint.to_pointer
 assert uint_ptr.is_a?(CFunc::Pointer)
 assert CFunc::UInt64.refer(uint_ptr).is_a?(CFunc::UInt64)
+
+uint = CFunc::UInt64.new(CFunc::SInt16.new(16))
+assert_equal 16, uint.value
