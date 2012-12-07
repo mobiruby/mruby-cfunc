@@ -18,9 +18,7 @@
 
 #include <setjmp.h>
 
-#ifdef USE_MRBC_DATA
-extern const char mruby_data_cfunc_rb[];
-#endif
+extern const char mruby_cfunc_data_cfunc_rb[];
 
 size_t cfunc_state_offset = 0;
 
@@ -53,8 +51,7 @@ void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*))
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
     
-#ifdef USE_MRBC_DATA
-    int n = mrb_read_irep(mrb, mruby_data_cfunc_rb);
+    int n = mrb_read_irep(mrb, mruby_cfunc_data_cfunc_rb);
     if (n >= 0) {
         mrb_irep *irep = mrb->irep[n];
         struct RProc *proc = mrb_proc_new(mrb, irep);
@@ -64,8 +61,4 @@ void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*))
     else if (mrb->exc) {
         longjmp(*(jmp_buf*)mrb->jmp, 1);
     }
-#else
-    init_cfunc_rb(mrb);
-#endif
-
 }

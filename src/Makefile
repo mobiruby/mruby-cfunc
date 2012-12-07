@@ -60,7 +60,7 @@ $(TARGET) : $(OBJS) $(OBJMRB)
 
 # mrby complie
 $(OBJMRB) : %.o : %.rb
-	$(MRBC) -Cinit_$(*F) $<
+	$(MRBC) -Bmruby_cfunc_data_$(*F) $<
 	$(CC) $(ALL_CFLAGS) -MMD $(INCLUDES) -c $(basename $<).c -o $@
 
 # objects compiled from source
