@@ -22,6 +22,10 @@ module CFunc
     def self.Double(val); Double.new(val) end
 
     class Type
+        def self.[](size)
+            CFunc::CArray(self).new(size)
+        end
+        
         def to_i
             val = self.value
             val ? val.to_i : 0
