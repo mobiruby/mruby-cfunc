@@ -11,7 +11,7 @@ assert_equal 1, uint.to_i
 assert_equal 1.0, uint.to_f
 
 uint.value = 1
-uint_ptr = uint.to_pointer
+uint_ptr = uint.addr
 assert uint_ptr.is_a?(CFunc::Pointer)
 
 assert CFunc::UInt32.refer(uint_ptr).is_a?(CFunc::UInt32)

@@ -9,7 +9,7 @@ assert_equal 1, int.to_i
 
 assert_equal 1.0, int.to_f
 
-int_ptr = int.to_pointer
+int_ptr = int.addr
 assert int_ptr.is_a?(CFunc::Pointer)
 
 assert CFunc::Int.refer(int_ptr).is_a?(CFunc::Int)

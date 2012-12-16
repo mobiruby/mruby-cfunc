@@ -182,7 +182,7 @@ cfunc_type_set_value(mrb_state *mrb, mrb_value self)
 
 
 mrb_value
-cfunc_type_to_pointer(mrb_state *mrb, mrb_value self)
+cfunc_type_addr(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
 
@@ -366,7 +366,7 @@ cfunc_uint64_to_s(mrb_state *mrb, mrb_value self)
 
 // nil specific
 mrb_value
-cfunc_nil_to_pointer(mrb_state *mrb, mrb_value self)
+cfunc_nil_addr(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
 
@@ -528,8 +528,8 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, type_class, "initialize", cfunc_type_initialize, ARGS_ANY());
     mrb_define_method(mrb, type_class, "value", cfunc_type_get_value, ARGS_NONE());
     mrb_define_method(mrb, type_class, "value=", cfunc_type_set_value, ARGS_REQ(1));
-    mrb_define_method(mrb, type_class, "to_pointer", cfunc_type_to_pointer, ARGS_NONE());
-    mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_to_pointer, ARGS_NONE());
+    mrb_define_method(mrb, type_class, "addr", cfunc_type_addr, ARGS_NONE());
+    mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_addr, ARGS_NONE());
 
     int map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
     for(int i = 0; i < map_size; ++i) {

@@ -1,6 +1,6 @@
 class CFunc::Type
     def to_ffi_value(ffi_type)
-        self.to_pointer
+        self.addr
     end
 
     def self.ffi_type
@@ -46,7 +46,7 @@ module CFunc
         def call(*args)
             @result_type ||= CFunc::Void
             @arguments_type.each_with_index do |arg_type, idx|
-                unless args[idx].is_a?(String) || args[idx].respond_to?(:to_pointer)
+                unless args[idx].is_a?(String) || args[idx].respond_to?(:addr)
                     args[idx] = arg_type.new(args[idx])
                 end
             end
@@ -102,9 +102,9 @@ class String
         CFunc::Pointer.refer(ptr).to_s
     end
 
-    # defined to_pointer in cfunc_type.c
+    # defined addr in cfunc_type.c
     def to_ffi_value(ffi_type)
-        self.to_pointer
+        self.addr
     end
 end
 
@@ -204,7 +204,7 @@ class CFunc::Struct
         el.value = val
     end
 
-    def to_pointer
+    def addr
         @pointer
     end
 
@@ -232,39 +232,39 @@ end
 # immediate values cannot have instance variables.
 # it's mruby limitation.
 # https://github.com/mruby/mruby/issues/438
-$mruby_cfunc_null_pointer = CFunc::Pointer.new.to_pointer
+$mruby_cfunc_null_pointer = CFunc::Pointer.new.addr
 class NilClass
-    def to_pointer
+    def addr
         $mruby_cfunc_null_pointer
     end
     
     def to_ffi_value(ffi_type)
-        self.to_pointer
+        self.addr
     end
 end
 
-$mruby_cfunc_true_pointer = CFunc::Int(1).to_pointer
+$mruby_cfunc_true_pointer = CFunc::Int(1).addr
 class TrueClass
-    def to_pointer
+    def addr
         $mruby_cfunc_true_pointer
     end
 
     def to_ffi_value(ffi_type)
-        self.to_pointer
+        self.addr
     end
 end
 TrueClass.instance_eval do
     @ffi_type = CFunc::Int.ffi_type
 end
 
-$mruby_cfunc_false_pointer = CFunc::Int(0).to_pointer
+$mruby_cfunc_false_pointer = CFunc::Int(0).addr
 class FalseClass
-    def to_pointer
+    def addr
         $mruby_cfunc_false_pointer
     end
     
     def to_ffi_value(ffi_type)
-        self.to_pointer
+        self.addr
     end
 end
 FalseClass.instance_eval do

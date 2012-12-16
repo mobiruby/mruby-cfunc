@@ -231,7 +231,7 @@ cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
 
 
 mrb_value
-cfunc_pointer_to_pointer(mrb_state *mrb, mrb_value self)
+cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
     void *ptr = NULL;
@@ -249,7 +249,7 @@ cfunc_pointer_to_pointer(mrb_state *mrb, mrb_value self)
 
 
 static mrb_value
-cfunc_string_to_pointer(mrb_state *mrb, mrb_value self)
+cfunc_string_addr(mrb_state *mrb, mrb_value self)
 {
     mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, &RSTRING_PTR(self), false);
     mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
@@ -334,6 +334,6 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, pointer_class, "to_s", cfunc_pointer_to_s, ARGS_NONE());
     
     // add method to system classes
-    mrb_define_method(mrb, mrb->string_class, "to_pointer", cfunc_string_to_pointer, ARGS_NONE());
+    mrb_define_method(mrb, mrb->string_class, "addr", cfunc_string_addr, ARGS_NONE());
     mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
 }

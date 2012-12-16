@@ -11,7 +11,7 @@ assert_equal 1, dbl.to_i
 assert_equal 1.2, dbl.to_f
 
 dbl.value = 1.23
-dbl_ptr = dbl.to_pointer
+dbl_ptr = dbl.addr
 assert dbl_ptr.is_a?(CFunc::Pointer)
 
 assert CFunc::Double.refer(dbl_ptr).is_a?(CFunc::Double)

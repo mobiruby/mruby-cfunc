@@ -11,7 +11,7 @@ assert_equal 0, flt.to_i
 assert_equal 0.5, flt.to_f
 
 flt.value = 1.25
-flt_ptr = flt.to_pointer
+flt_ptr = flt.addr
 assert flt_ptr.is_a?(CFunc::Pointer)
 
 assert CFunc::Float.refer(flt_ptr).is_a?(CFunc::Float)

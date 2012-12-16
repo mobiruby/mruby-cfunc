@@ -19,7 +19,7 @@ assert_equal 2, uint.low
 assert_equal 1, uint.high
 assert_equal (1<<32)+2, uint.value
 assert_equal "4294967298", uint.to_s
-uint_ptr = uint.to_pointer
+uint_ptr = uint.addr
 assert uint_ptr.is_a?(CFunc::Pointer)
 assert CFunc::UInt64.refer(uint_ptr).is_a?(CFunc::UInt64)
 

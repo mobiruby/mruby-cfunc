@@ -12,7 +12,7 @@ sint.value = -1
 assert_equal -1, sint.value
 
 sint.value = 1
-sint_ptr = sint.to_pointer
+sint_ptr = sint.addr
 assert sint_ptr.is_a?(CFunc::Pointer)
 
 assert CFunc::SInt32.refer(sint_ptr).is_a?(CFunc::SInt32)
