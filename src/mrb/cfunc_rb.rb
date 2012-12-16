@@ -161,6 +161,11 @@ class CFunc::Struct
             args = args.first if args.is_a?(Array) && args.size == 1
             @elements = []
             types, offset = [], 0
+            klass = self
+            if klass == CFunc::Struct
+              return Kernel.const_set(args.shift.to_s, Class.new(CFunc::Struct)).define(*args)
+            end
+            
             max_align = 0
             args.each_slice(2) do |el|
                 offset = calc_align(offset, el[0].align)
@@ -170,7 +175,8 @@ class CFunc::Struct
                 max_align = el[0].align if el[0].align > max_align
             end
             @align = @size = offset + ((-offset) & (max_align - 1))
-            self.define_struct(types)
+            klass.define_struct(types)
+            klass
         end
     end
 
