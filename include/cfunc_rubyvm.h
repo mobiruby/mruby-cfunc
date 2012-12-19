@@ -14,8 +14,7 @@
 
 struct cfunc_rubyvm_data {
     mrb_state *state;
-    void (*mrb_state_init)(mrb_state*);
-
+    
     const char* mrb_data;
 
     pthread_t thread;
@@ -25,6 +24,6 @@ struct cfunc_rubyvm_data {
     vector_p queue;
 };
 
-void init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module, void (*mrb_state_init)(mrb_state*));
+void init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module);
 
 #endif

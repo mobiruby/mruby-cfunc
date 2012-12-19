@@ -20,8 +20,6 @@
 
 extern const char mruby_cfunc_data_cfunc_rb[];
 
-size_t cfunc_state_offset = 0;
-
 // generate from mrb/cfunc_rb.rb
 void
 init_cfunc_rb(mrb_state *mrb);
@@ -33,21 +31,23 @@ cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
 }
 
 
-void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*))
+void init_cfunc_module(mrb_state *mrb)
 {
     if(sizeof(mrb_int) < 8) {
         fprintf(stderr, "mruby-cfunc require 64bit for mrb_int.");
     }
 
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
-    cfunc_state(mrb)->namespace = ns;
+    struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
+    mrb_value mstate = mrb_voidp_value(state);
+    mrb_obj_iv_set(mrb, ns, mrb_intern(mrb, "cfunc_state"), mstate);
 
     init_cfunc_type(mrb, ns);
     init_cfunc_pointer(mrb, ns);
     init_cfunc_struct(mrb, ns);
     init_cfunc_closure(mrb, ns);
     init_cfunc_call(mrb, ns);
-    init_cfunc_rubyvm(mrb, ns, mrb_state_init);
+    init_cfunc_rubyvm(mrb, ns);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
     

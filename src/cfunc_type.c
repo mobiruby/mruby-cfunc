@@ -58,12 +58,16 @@ struct mrb_ffi_type*
 mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
 {
     if(mrb_nil_p(val)) {
-        return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb)->pointer_class);
+        struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
+        return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, mod)->pointer_class);
     }
     switch(mrb_type(val)) {
         case MRB_TT_TRUE:
         case MRB_TT_FALSE:
-           return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb)->sint32_class);
+            {
+                struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
+                return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, mod)->sint32_class);
+            }
     }
     return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
 }
@@ -515,9 +519,11 @@ const struct mrb_data_type cfunc_class_ffi_data_type = {
 
 void init_cfunc_type(mrb_state *mrb, struct RClass* module)
 {
+    struct cfunc_state *state = cfunc_state(mrb, module);
     struct RClass *type_class = mrb_define_class_under(mrb, module, "Type", mrb->object_class);
     MRB_SET_INSTANCE_TT(type_class, MRB_TT_DATA);
-    cfunc_state(mrb)->type_class = type_class;
+    state->type_class = type_class;
+    mrb_obj_iv_set(mrb, type_class, mrb_intern(mrb, "cfunc_state"), mrb_voidp_value(state));
 
     mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, ARGS_REQ(1));
     mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, ARGS_NONE());
@@ -539,23 +545,23 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     }
     
     mrb_value mod = mrb_obj_value(module);
-    cfunc_state(mrb)->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Void")));
-    cfunc_state(mrb)->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt8")));
-    cfunc_state(mrb)->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt8")));
-    cfunc_state(mrb)->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt16")));
-    cfunc_state(mrb)->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt16")));
-    cfunc_state(mrb)->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt32")));
-    cfunc_state(mrb)->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt32")));
-    cfunc_state(mrb)->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt64")));
-    cfunc_state(mrb)->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
-    cfunc_state(mrb)->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
-    cfunc_state(mrb)->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
+    state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Void")));
+    state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt8")));
+    state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt8")));
+    state->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt16")));
+    state->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt16")));
+    state->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt32")));
+    state->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt32")));
+    state->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt64")));
+    state->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
+    state->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
+    state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
 
     mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());
     mrb_define_class_method(mrb, mrb->nil_class, "align", cfunc_nil_align, ARGS_NONE());
 
     // sint64 specific
-    struct RClass *uint64_class = cfunc_state(mrb)->uint64_class;
+    struct RClass *uint64_class = state->uint64_class;
     mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, ARGS_REQ(1));
     mrb_define_method(mrb, uint64_class, "value", cfunc_uint64_get_value, ARGS_NONE());
     mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, ARGS_NONE());

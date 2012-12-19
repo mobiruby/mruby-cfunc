@@ -18,7 +18,7 @@ else ifeq ($(COMPILE_MODE),release)
 else ifeq ($(COMPILE_MODE),small)
   CFLAGS = -Os
 endif
-CFLAGS += -pthread
+CFLAGS += -pthread -D DISABLE_GEMS
 
 BASEDIR = $(shell pwd)
 INCLUDES = -I$(BASEDIR)/include -I$(BASEDIR)/vendors/include
@@ -84,7 +84,7 @@ tmp/mruby:
 	sed -i -e 's/\/\/\#define MRB_INT64/\#define MRB_INT64/' tmp/mruby/include/mrbconf.h
 
 vendors/lib/libmruby.a: tmp/mruby
-	cd tmp/mruby && make clean && make all CFLAGS="$(CFLAGS)"
+	cd tmp/mruby && ./minirake clean && ./minirake all CFLAGS="$(CFLAGS)"
 	cp -r tmp/mruby/include vendors/
 	cp -r tmp/mruby/lib vendors/
 	cp -r tmp/mruby/bin vendors/

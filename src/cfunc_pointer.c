@@ -84,7 +84,9 @@ cfunc_pointer_new_with_pointer(mrb_state *mrb, void *p, bool autofree)
 
     set_cfunc_pointer_data(data, p);
 
-    return mrb_obj_value(Data_Wrap_Struct(mrb, cfunc_state(mrb)->pointer_class, &cfunc_pointer_data_type, data));
+    struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
+    struct cfunc_state *state = cfunc_state(mrb, mod);
+    return mrb_obj_value(Data_Wrap_Struct(mrb, state->pointer_class, &cfunc_pointer_data_type, data));
 }
 
 
@@ -165,7 +167,7 @@ cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
     struct cfunc_type_data *data = DATA_PTR(self);
     
     mrb_value type = mrb_funcall(mrb, mrb_obj_value(mrb_class(mrb, self)), "type", 0);
-    const char* classname = mrb_class_name(mrb, mrb_object(type));
+    const char* classname = mrb_class_name(mrb, (struct RClass*)mrb_object(type));
     if(!classname) {
         classname = "Unknown pointer";
     }
@@ -315,10 +317,12 @@ static struct mrb_ffi_type pointer_mrb_ffi_type = {
 void
 init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
 {
-    struct RClass *pointer_class = mrb_define_class_under(mrb, module, "Pointer", cfunc_state(mrb)->type_class);
+    struct cfunc_state *state = cfunc_state(mrb, module);
+
+    struct RClass *pointer_class = mrb_define_class_under(mrb, module, "Pointer", state->type_class);
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_pointer_ffi_data_type, &pointer_mrb_ffi_type));
     mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
-    cfunc_state(mrb)->pointer_class = pointer_class;
+    state->pointer_class = pointer_class;
 
     mrb_define_class_method(mrb, pointer_class, "refer", cfunc_pointer_refer, ARGS_REQ(1));
     mrb_define_class_method(mrb, pointer_class, "malloc", cfunc_pointer_class_malloc, ARGS_REQ(1));

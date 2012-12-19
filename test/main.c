@@ -88,16 +88,13 @@ const char* assert_rb =
 static 
 void mrb_state_init(mrb_state *mrb)
 {
-    mrb->ud = malloc(sizeof(struct mrb_state_ud));
-    init_cfunc_module(mrb, mrb_state_init);
+    init_cfunc_module(mrb);
 }
 
 
 int main(int argc, char *argv[])
 {
     printf("%s: ", appname);
-
-    cfunc_state_offset = cfunc_offsetof(struct mrb_state_ud, cfunc_state);
 
     mrb_state *mrb = mrb_open();
     mrb_state_init(mrb);

@@ -29,6 +29,8 @@
 #define cfunc_h
 
 #include "mruby.h"
+#include "mruby/variable.h"
+#include "mruby/value.h"
 
 struct cfunc_state {
     struct RClass *namespace;
@@ -50,38 +52,23 @@ struct cfunc_state {
     struct RClass *closure_class;
     struct RClass *rubyvm_class;
     struct RClass *rubyvm_task_class;
-
-    void (*mrb_state_init)(mrb_state*);
 };
 
-void init_cfunc_module(mrb_state *mrb, void (*mrb_state_init)(mrb_state*));
-
-/* offset of cfunc_state in mrb->ud */
-extern size_t cfunc_state_offset;
-
-/* service function for setting cfunc_state_offset */
-#define cfunc_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+void init_cfunc_module(mrb_state *mrb);
 
 /*
 example:
 
-struct mrb_state_ud {
-    struct cfunc_state cfunc_state;
-};
-
-cfunc_state_offset = cfunc_offsetof(struct mrb_state_ud, cfunc_state);
-
 mrb_state *mrb = mrb_open();
-mrb->ud = malloc(sizeof(struct mrb_state_ud));
-
 init_cfunc_module(mrb);
 */
 
 
 static inline struct cfunc_state *
-cfunc_state(mrb_state* mrb)
+cfunc_state(mrb_state *mrb, struct RClass* klass)
 {
-  return (struct cfunc_state *)(mrb->ud + cfunc_state_offset);
+    mrb_value state = mrb_obj_iv_get(mrb, (struct RObject *)klass, mrb_intern(mrb, "cfunc_state"));
+    return (struct cfunc_state *)mrb_voidp(state);
 }
 
 #endif

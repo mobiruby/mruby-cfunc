@@ -236,7 +236,9 @@ cfunc_rubyvm_open(void *args)
     mrb_state *mrb = mrb_open();
     data->state = mrb;
     
-    data->mrb_state_init(mrb);
+#ifdef DISABLE_GEMS
+    init_cfunc_module(mrb);
+#endif
 
     int n = mrb_read_irep(mrb, data->mrb_data);
 
@@ -311,7 +313,8 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
     pthread_cond_signal(&data->queue_cond);
     pthread_mutex_unlock(&data->queue_mutex);
 
-    return mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, cfunc_state(mrb)->rubyvm_task_class, &cfunc_rubyvm_task_data_type, task));
+    struct cfunc_state *state = cfunc_state(mrb, mrb_obj_ptr(self)->c);
+    return mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, state->rubyvm_task_class, &cfunc_rubyvm_task_data_type, task));
 }
 
 
@@ -350,8 +353,8 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 {
     // init bindle data with RubyVM object
     struct RClass *c = mrb_class_ptr(klass);
+    struct cfunc_state *state = cfunc_state(mrb, c);
     struct cfunc_rubyvm_data *data = malloc(sizeof(struct cfunc_rubyvm_data));
-    data->mrb_state_init = cfunc_state(mrb)->mrb_state_init;
     mrb_value self = mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_rubyvm_data_type, data));
 
     // load script
@@ -379,18 +382,19 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 
 
 void
-init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module, void (*mrb_state_init)(mrb_state*))
+init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module)
 {
-    cfunc_state(mrb)->mrb_state_init = mrb_state_init;
+    struct cfunc_state *state = cfunc_state(mrb, module);
 
     struct RClass *rubyvm_class = mrb_define_class_under(mrb, module, "RubyVM", mrb->object_class);
-    cfunc_state(mrb)->rubyvm_class = rubyvm_class;
+    state->rubyvm_class = rubyvm_class;
+    mrb_obj_iv_set(mrb, (struct RObject*)rubyvm_class, mrb_intern(mrb, "cfunc_state"), mrb_voidp_value(state));
 
     mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, ARGS_REQ(1));
     mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, ARGS_ANY());
 
-    struct RClass *rubyvm_task_class = mrb_define_class_under(mrb, cfunc_state(mrb)->rubyvm_class, "Task", mrb->object_class);
-    cfunc_state(mrb)->rubyvm_task_class = rubyvm_task_class;
+    struct RClass *rubyvm_task_class = mrb_define_class_under(mrb, rubyvm_class, "Task", mrb->object_class);
+    state->rubyvm_task_class = rubyvm_task_class;
 
     mrb_define_method(mrb, rubyvm_task_class, "wait", cfunc_rubyvm_task_wait, ARGS_NONE());
     mrb_define_method(mrb, rubyvm_task_class, "result", cfunc_rubyvm_task_result, ARGS_NONE());
