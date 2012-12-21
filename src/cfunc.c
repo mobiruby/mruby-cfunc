@@ -18,7 +18,7 @@
 
 #include <setjmp.h>
 
-extern const char mruby_cfunc_data_cfunc_rb[];
+//extern const char mruby_cfunc_data_cfunc_rb[];
 
 // generate from mrb/cfunc_rb.rb
 void
@@ -50,7 +50,7 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_rubyvm(mrb, ns);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
-    
+    /*
     int n = mrb_read_irep(mrb, mruby_cfunc_data_cfunc_rb);
     if (n >= 0) {
         mrb_irep *irep = mrb->irep[n];
@@ -61,4 +61,13 @@ void init_cfunc_module(mrb_state *mrb)
     else if (mrb->exc) {
         longjmp(*(jmp_buf*)mrb->jmp, 1);
     }
+    */
 }
+
+
+void
+mrb_mruby_cfunc_gem_init(mrb_state* mrb)
+{
+  init_cfunc_module(mrb);
+}
+

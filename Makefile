@@ -1,69 +1,25 @@
-# makefile discription.
-# basic build file for mruby
+GEM := mruby-cfunc
 
-# compiler, linker (gcc), archiver, parser generator
-CC = gcc
-LL = gcc
-LIBFFI_VERSION = 3.0.11
+include $(MAKEFILE_4_GEM)
 
-ifeq ($(strip $(COMPILE_MODE)),)
-  # default compile option
-  COMPILE_MODE = debug
-endif
+MRUBY_CFLAGS = -pthread
+MRUBY_LDFLAGS = -L`pwd`/lib -lffi
 
-ifeq ($(COMPILE_MODE),debug)
-  CFLAGS = -g -O3
-else ifeq ($(COMPILE_MODE),release)
-  CFLAGS = -O3
-else ifeq ($(COMPILE_MODE),small)
-  CFLAGS = -Os
-endif
-CFLAGS += -pthread -D DISABLE_GEMS
+GEM_C_FILES := $(wildcard $(SRC_DIR)/*.c)
+GEM_OBJECTS := $(patsubst %.c, %.o, $(GEM_C_FILES))
 
-BASEDIR = $(shell pwd)
-INCLUDES = -I$(BASEDIR)/include -I$(BASEDIR)/vendors/include
+GEM_RB_FILES := $(wildcard $(MRB_DIR)/*.rb)
 
-MRUBY_CFLAGS = -I$(BASEDIR)/vendors/include
-MRUBY_LIBS = -L$(BASEDIR)/vendors/lib -lmruby
+gem-all : lib/libffi.a $(GEM_OBJECTS) gem-c-and-rb-files
 
-LIBFFI_CFLAGS = -I$(BASEDIR)/vendors/lib/libffi-$(LIBFFI_VERSION)/include/
-LIBFFI_LIBS = $(BASEDIR)/vendors/lib/libffi.a
+gem-clean : gem-clean-c-and-rb-files
 
-ALL_CFLAGS = $(CFLAGS) $(INCLUDES) $(MRUBY_CFLAGS)
-ifeq ($(OS),Windows_NT)
-  MAKE_FLAGS = --no-print-directory CC=$(CC) LL=$(LL) CFLAGS='$(ALL_CFLAGS)' LIBFFI_CFLAGS='$(LIBFFI_CFLAGS)' LIBFFI_LIBS='$(LIBFFI_LIBS)' MRUBY_CFLAGS='$(MRUBY_CFLAGS)' MRUBY_LIBS='$(MRUBY_LIBS)'
-else
-  MAKE_FLAGS = --no-print-directory CC='$(CC)' LL='$(LL)' CFLAGS='$(ALL_CFLAGS)' LIBFFI_CFLAGS='$(LIBFFI_CFLAGS)' LIBFFI_LIBS='$(LIBFFI_LIBS)' MRUBY_CFLAGS='$(MRUBY_CFLAGS)' MRUBY_LIBS='$(MRUBY_LIBS)'
-endif
-
-##############################
-# internal variables
-
-export CP := cp
-export RM_F := rm -f
-export CAT := cat
-
-
-##############################
-# generic build targets, rules
-
-.PHONY : all
-all: lib/libmruby-cfunc.a
-
-lib/libmruby-cfunc.a : vendors/lib/libffi.a vendors/lib/libmruby.a
-	@$(MAKE) -C src $(MAKE_FLAGS)
-
-# mruby test
-.PHONY : test
-test : lib/libmruby-cfunc.a 
-	@$(MAKE) -C src $(MAKE_FLAGS)
-	@$(MAKE) -C test $(MAKE_FLAGS) run
-
-# clean up
-.PHONY : clean
-clean :
-	@$(MAKE) clean -C src $(MAKE_FLAGS)
-	@$(MAKE) clean -C test $(MAKE_FLAGS)
+gem-test : gem_test.rbtmp $(GEM_TEST_C_FILES) test/_rubyvm1.rbx
+	$(MRBC) -Bgem_mrblib_irep_$(subst -,_,$(GEM))_test -ogem_test.ctmp gem_test.rbtmp
+	$(RM_F) gem_test_vm1.ctmp
+	$(MRBC) -Bmruby_data__rubyvm1 -ogem_test_vm1.ctmp test/_rubyvm1.rbx
+	cat $(GEM_TEST_C_FILES) gem_test_vm1.ctmp >> gem_test.ctmp
+	$(RM_F) gem_test_vm1.ctmp
 
 
 ##################
@@ -72,19 +28,8 @@ tmp/libffi:
 	mkdir -p tmp/libffi
 	cd tmp && git clone https://github.com/atgreen/libffi.git
 
-vendors/lib/libffi.a: tmp/libffi
+lib/libffi.a: tmp/libffi
+	mkdir -p vendors
 	cd tmp/libffi && ./configure --prefix=`pwd`/../../vendors && make clean install CFLAGS="$(CFLAGS)"
-
-
-##################
-# libmruby.a
-tmp/mruby:
-	mkdir -p tmp/mruby
-	cd tmp; git clone https://github.com/mruby/mruby.git
-	sed -i -e 's/\/\/\#define MRB_INT64/\#define MRB_INT64/' tmp/mruby/include/mrbconf.h
-
-vendors/lib/libmruby.a: tmp/mruby
-	cd tmp/mruby && ./minirake clean && ./minirake all CFLAGS="$(CFLAGS)"
-	cp -r tmp/mruby/include vendors/
-	cp -r tmp/mruby/lib vendors/
-	cp -r tmp/mruby/bin vendors/
+	cp -r vendors/lib/libffi-3.0.11/include/* include/
+	cp  vendors/lib/libffi.a lib/

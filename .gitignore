@@ -1,5 +1,14 @@
 # https://help.github.com/articles/ignoring-files
 
+# mrbgems
+*.tmp
+*.ctmp
+*.rbtmp
+gem_mixlib.c
+gem_mrblib.c
+gem_srclib.c
+
+
 # 3rd party #
 #############
 vendors
@@ -17,8 +26,6 @@ tmp
 *.d
 *.dSYM
 *.a
-test/t/*.c
-
 
 # Packages #
 ############

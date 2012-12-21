@@ -35,9 +35,19 @@ cfunc_closure_destructor(mrb_state *mrb, void *p_)
     free(p);
 }
 
+static void
+cfunc_closure_ffi_type_destructor(mrb_state *mrb, void *p_)
+{
+    // Nothing
+}
 
 static struct mrb_data_type cfunc_closure_data_type = {
     "cfunc_closure", cfunc_closure_destructor,
+};
+
+
+static struct mrb_data_type cfunc_closure_ffi_type_data_type = {
+    "cfunc_closure_ffi_type", cfunc_closure_ffi_type_destructor,
 };
 
 
@@ -172,7 +182,7 @@ init_cfunc_closure(mrb_state *mrb, struct RClass* module)
     struct RClass *closure_class = mrb_define_class_under(mrb, module, "Closure", state->pointer_class);
     state->closure_class = closure_class;
 
-    mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_data_type, &closure_mrb_ffi_type));
+    mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
     mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
 
     mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, ARGS_ANY());
