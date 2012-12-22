@@ -2,7 +2,7 @@ GEM := mruby-cfunc
 
 include $(MAKEFILE_4_GEM)
 
-MRUBY_CFLAGS = -pthread
+MRUBY_CFLAGS = -pthread -std=c99
 MRUBY_LDFLAGS = -L`pwd`/lib -lffi
 
 GEM_C_FILES := $(wildcard $(SRC_DIR)/*.c)
@@ -21,6 +21,14 @@ gem-test : gem_test.rbtmp $(GEM_TEST_C_FILES) test/_rubyvm1.rbx
 	cat $(GEM_TEST_C_FILES) gem_test_vm1.ctmp >> gem_test.ctmp
 	$(RM_F) gem_test_vm1.ctmp
 
+test: tmp/mruby
+	cd tmp/mruby; ENABLE_GEMS=true ./minirake test
+
+tmp/mruby:
+	mkdir -p tmp/mruby
+	cd tmp; git clone https://github.com/mruby/mruby.git
+	sed -i -e 's/\/\/\#define MRB_INT64/\#define MRB_INT64/' tmp/mruby/include/mrbconf.h
+	pwd > tmp/mruby/mrbgems/GEMS.active
 
 ##################
 # libffi.a
