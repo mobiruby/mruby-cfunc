@@ -4,4 +4,4 @@ compiler:
   - clang
 
 script:
-  - "make all test"
+  - "make test"
