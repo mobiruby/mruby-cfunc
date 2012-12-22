@@ -538,7 +538,8 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_addr, ARGS_NONE());
 
     int map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
-    for(int i = 0; i < map_size; ++i) {
+    int i;
+    for(i = 0; i < map_size; ++i) {
         struct RClass *new_class = mrb_define_class_under(mrb, module, types[i].name, type_class);
         mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_class_ffi_data_type, &types[i]));
         mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern(mrb, "@ffi_type"), ffi_type);

@@ -49,7 +49,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
-    for(int i = 0; i < margc; ++i) {
+    int i;
+    for(i = 0; i < margc; ++i) {
         if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
             values[i] = cfunc_pointer_ptr(mrb_funcall_argv(mrb, margs[i], sym_to_ffi_value, 1, nil_ary));

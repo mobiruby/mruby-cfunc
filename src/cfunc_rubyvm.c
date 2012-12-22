@@ -101,7 +101,8 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
             arg->value.array.len = ary->len;
             arg->value.array.ptr = malloc(ary->len * sizeof(struct task_arg));
 
-            for(int i=0; i<ary->len; i++) {
+            int i;
+            for(i=0; i<ary->len; i++) {
                 arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, ary->ptr[i]);
             }
         }
@@ -145,7 +146,8 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
             v = mrb_ary_new_capa(mrb, arg->value.array.len);
             struct RArray *ary = mrb_ary_ptr(v);
             ary->len = arg->value.array.len;
-            for(int i=0; i<arg->value.array.len; i++) {
+            int i;
+            for(i=0; i<arg->value.array.len; i++) {
                 ary->ptr[i] = task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]);
             }
         }
@@ -173,7 +175,8 @@ free_task_arg(struct task_arg* arg)
 
     case MRB_TT_ARRAY:
         {
-            for(int i=0; i<arg->value.array.len; i++) {
+            int i;
+            for(i=0; i<arg->value.array.len; i++) {
                 free_task_arg(arg->value.array.ptr[i]);
             }
             free(arg->value.array.ptr);
@@ -191,7 +194,8 @@ free_queue_task(struct queue_task* task)
 {
     task->refcount--;
     if(task->refcount < 1) {
-        for(int i=0; i<task->args_len; ++i) {
+        int i;
+        for(i=0; i<task->args_len; ++i) {
             free_task_arg(task->args[i]);
         }
         free(task->args);
@@ -261,7 +265,8 @@ cfunc_rubyvm_open(void *args)
 
         int args_len = task->args_len;
         mrb_value *args = malloc(sizeof(struct task_arg) * task->args_len);
-        for(int i=0; i<task->args_len; ++i) {
+        int i;
+        for(i=0; i<task->args_len; ++i) {
             args[i] = task_arg_to_mrb_value(data->state, task->args[i]);
         }
 
@@ -304,7 +309,8 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 
     task->args_len = args_len;
     task->args = malloc(sizeof(struct task_arg) * task->args_len);
-    for(int i=0; i<args_len; ++i) {
+    int i;
+    for(i=0; i<args_len; ++i) {
         task->args[i] = mrb_value_to_task_arg(mrb, args[i]);
     }
 

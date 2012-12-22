@@ -2,7 +2,7 @@ GEM := mruby-cfunc
 
 -include $(MAKEFILE_4_GEM)
 
-MRUBY_CFLAGS = -pthread -std=c99
+MRUBY_CFLAGS = -pthread
 MRUBY_LDFLAGS = -L`pwd`/lib -lffi
 
 GEM_C_FILES := $(wildcard $(SRC_DIR)/*.c)

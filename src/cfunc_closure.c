@@ -77,7 +77,8 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
 
     data->arg_ffi_types = malloc(sizeof(ffi_type*) * data->argc);
     data->arg_types = malloc(sizeof(mrb_value) * data->argc);
-    for (int i = 0; i < data->argc; ++i) {
+    int i;
+    for (i = 0; i < data->argc; ++i) {
         data->arg_types[i] = mrb_ary_ref(mrb, args_mrb, i);
         data->arg_ffi_types[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(data->arg_types[i]))->ffi_type_value;
     }
@@ -111,7 +112,8 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
     int ai = mrb_gc_arena_save(data->mrb);
 
     mrb_value *ary = malloc(sizeof(mrb_value) * data->argc);
-    for (int i = 0; i < data->argc; ++i) {
+    int i;
+    for (i = 0; i < data->argc; ++i) {
         // TODO: I felt too much consume memory
         void *p = malloc(data->arg_ffi_types[i]->size);
         memcpy(p, args[i], data->arg_ffi_types[i]->size);
