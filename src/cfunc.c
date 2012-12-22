@@ -39,8 +39,7 @@ void init_cfunc_module(mrb_state *mrb)
 
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
-    mrb_value mstate = mrb_voidp_value(state);
-    mrb_obj_iv_set(mrb, ns, mrb_intern(mrb, "cfunc_state"), mstate);
+    set_cfunc_state(mrb, ns, state);
 
     init_cfunc_type(mrb, ns);
     init_cfunc_pointer(mrb, ns);
@@ -50,18 +49,6 @@ void init_cfunc_module(mrb_state *mrb)
     init_cfunc_rubyvm(mrb, ns);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
-    /*
-    int n = mrb_read_irep(mrb, mruby_cfunc_data_cfunc_rb);
-    if (n >= 0) {
-        mrb_irep *irep = mrb->irep[n];
-        struct RProc *proc = mrb_proc_new(mrb, irep);
-        proc->target_class = mrb->object_class;
-        mrb_run(mrb, proc, mrb_top_self(mrb));
-    }
-    else if (mrb->exc) {
-        longjmp(*(jmp_buf*)mrb->jmp, 1);
-    }
-    */
 }
 
 

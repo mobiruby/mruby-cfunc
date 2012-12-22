@@ -523,7 +523,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     struct RClass *type_class = mrb_define_class_under(mrb, module, "Type", mrb->object_class);
     MRB_SET_INSTANCE_TT(type_class, MRB_TT_DATA);
     state->type_class = type_class;
-    mrb_obj_iv_set(mrb, type_class, mrb_intern(mrb, "cfunc_state"), mrb_voidp_value(state));
+    set_cfunc_state(mrb, (struct RObject*)type_class, state);
 
     mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, ARGS_REQ(1));
     mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, ARGS_NONE());

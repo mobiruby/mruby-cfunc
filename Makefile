@@ -4,6 +4,7 @@ GEM := mruby-cfunc
 
 MRUBY_CFLAGS = -pthread
 MRUBY_LDFLAGS = -L`pwd`/lib -lffi -ldl
+MRUBY_LIBS = -lffi -ldl
 
 GEM_C_FILES := $(wildcard $(SRC_DIR)/*.c)
 GEM_OBJECTS := $(patsubst %.c, %.o, $(GEM_C_FILES))

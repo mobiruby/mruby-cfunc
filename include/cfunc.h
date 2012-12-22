@@ -56,19 +56,20 @@ struct cfunc_state {
 
 void init_cfunc_module(mrb_state *mrb);
 
-/*
-example:
-
-mrb_state *mrb = mrb_open();
-init_cfunc_module(mrb);
-*/
-
-
 static inline struct cfunc_state *
-cfunc_state(mrb_state *mrb, struct RClass* klass)
+cfunc_state(mrb_state *mrb, struct RObject* obj)
 {
-    mrb_value state = mrb_obj_iv_get(mrb, (struct RObject *)klass, mrb_intern(mrb, "cfunc_state"));
+    mrb_value state;
+    state = mrb_mod_cv_get(mrb, obj, mrb_intern(mrb, "cfunc_state"));
     return (struct cfunc_state *)mrb_voidp(state);
+}
+
+
+static inline void
+set_cfunc_state(mrb_state *mrb, struct RClass* klass, struct cfunc_state *state)
+{
+    mrb_value mstate = mrb_voidp_value(state);
+    mrb_mod_cv_set(mrb, klass, mrb_intern(mrb, "cfunc_state"), mstate);
 }
 
 #endif

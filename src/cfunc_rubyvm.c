@@ -394,7 +394,7 @@ init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module)
 
     struct RClass *rubyvm_class = mrb_define_class_under(mrb, module, "RubyVM", mrb->object_class);
     state->rubyvm_class = rubyvm_class;
-    mrb_obj_iv_set(mrb, (struct RObject*)rubyvm_class, mrb_intern(mrb, "cfunc_state"), mrb_voidp_value(state));
+    set_cfunc_state(mrb, (struct RObject*)rubyvm_class, state);
 
     mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, ARGS_REQ(1));
     mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, ARGS_ANY());

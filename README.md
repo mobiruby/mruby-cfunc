@@ -3,14 +3,18 @@
 Interface to C functions on mruby. it's based on [libffi](http://sourceware.org/libffi/).
 
 
-## first step
+## Install
+
+It's mrbgems.
+
+If you want to run tests, please run below command.
 
     make test
 
 
 ## Limitation
 
-* mrb_int should be 64bit int (ex int64_t)
+* mrb_int should be 64bit int. define MRB_INT64 in mrbconf.h
 
 
 ## Todo
