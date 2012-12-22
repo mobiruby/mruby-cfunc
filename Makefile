@@ -3,7 +3,7 @@ GEM := mruby-cfunc
 -include $(MAKEFILE_4_GEM)
 
 MRUBY_CFLAGS = -pthread
-MRUBY_LDFLAGS = -L`pwd`/lib -lffi
+MRUBY_LDFLAGS = -L`pwd`/lib -lffi -ldl
 
 GEM_C_FILES := $(wildcard $(SRC_DIR)/*.c)
 GEM_OBJECTS := $(patsubst %.c, %.o, $(GEM_C_FILES))
