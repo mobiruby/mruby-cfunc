@@ -21,8 +21,11 @@ gem-test : gem_test.rbtmp $(GEM_TEST_C_FILES) test/_rubyvm1.rbx
 	cat $(GEM_TEST_C_FILES) gem_test_vm1.ctmp >> gem_test.ctmp
 	$(RM_F) gem_test_vm1.ctmp
 
+clean:
+	rm -Rf tmp/mruby
+
 test: tmp/mruby
-	cd tmp/mruby; ENABLE_GEMS=true ./minirake test
+	cd tmp/mruby; ENABLE_GEMS=true ./minirake clean test
 
 tmp/mruby:
 	mkdir -p tmp/mruby
