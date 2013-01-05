@@ -7,7 +7,7 @@ unless Object.const_defined?(:STest)
 end
 
 mobiruby_test "CFunc::call_struct1" do
-  stest = ::STest.new
+  stest = STest.new
 
   assert_equal 10, stest[:x] = 10
   assert_equal 20, stest[:y] = 20

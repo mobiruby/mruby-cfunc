@@ -58,15 +58,13 @@ struct mrb_ffi_type*
 mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
 {
     if(mrb_nil_p(val)) {
-        struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
-        return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, mod)->pointer_class);
+        return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->pointer_class);
     }
     switch(mrb_type(val)) {
         case MRB_TT_TRUE:
         case MRB_TT_FALSE:
             {
-                struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
-                return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, mod)->sint32_class);
+                return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->sint32_class);
             }
     }
     return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);

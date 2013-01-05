@@ -18,11 +18,6 @@
 
 #include <setjmp.h>
 
-//extern const char mruby_cfunc_data_cfunc_rb[];
-
-// generate from mrb/cfunc_rb.rb
-void
-init_cfunc_rb(mrb_state *mrb);
 
 mrb_value
 cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
@@ -30,8 +25,8 @@ cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
     return cfunc_pointer_new_with_pointer(mrb, mrb, false);
 }
 
-
-void init_cfunc_module(mrb_state *mrb)
+void
+mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 {
     if(sizeof(mrb_int) < 8) {
         fprintf(stderr, "mruby-cfunc require 64bit for mrb_int.");
@@ -50,11 +45,3 @@ void init_cfunc_module(mrb_state *mrb)
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
 }
-
-
-void
-mrb_mruby_cfunc_gem_init(mrb_state* mrb)
-{
-  init_cfunc_module(mrb);
-}
-

@@ -5,7 +5,7 @@
 #include "mruby/proc.h"
 #include "mruby/compile.h"
 
-const char* assert_rb = " \
+const char* cfunc_assert_rb = " \
 class MobiRubyTest \n\
   def initialize(label) \n\
     @label = label \n\
@@ -52,7 +52,7 @@ end";
 void
 mrb_mruby_cfunc_gem_test_init(mrb_state *mrb)
 {
-    mrb_load_string(mrb, assert_rb);
+    mrb_load_string(mrb, cfunc_assert_rb);
     if (mrb->exc) {
         mrb_p(mrb, mrb_obj_value(mrb->exc));
         exit(1);

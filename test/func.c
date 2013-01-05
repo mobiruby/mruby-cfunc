@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 struct STest {
     int8_t x;
     int16_t y;

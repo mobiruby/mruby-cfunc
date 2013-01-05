@@ -1,5 +1,5 @@
 //
-//  CFunc::Cass method
+//  CFunc::call method
 // 
 //  See Copyright Notice in cfunc.h
 //
@@ -33,14 +33,18 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         void *dlh = dlopen(NULL, RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
         dlclose(dlh);
+
+        if(fp == NULL) {
+            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+            goto cfunc_call_exit;
+        }
     }
     else {
         fp = cfunc_pointer_ptr(mname);
-    }
-    
-    if(fp == NULL) {
-        mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
-        goto cfunc_call_exit;
+        if(fp == NULL) {
+            mrb_raisef(mrb, E_NAME_ERROR, "can't call NULL pointer");
+            goto cfunc_call_exit;
+        }
     }
 
     args = malloc(sizeof(ffi_type*) * margc);

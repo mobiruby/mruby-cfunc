@@ -54,13 +54,13 @@ struct cfunc_state {
     struct RClass *rubyvm_task_class;
 };
 
-void init_cfunc_module(mrb_state *mrb);
-
 static inline struct cfunc_state *
 cfunc_state(mrb_state *mrb, struct RObject* obj)
 {
-    mrb_value state;
-    state = mrb_mod_cv_get(mrb, obj, mrb_intern(mrb, "cfunc_state"));
+    if(obj == NULL) {
+        obj = mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
+    }
+    mrb_value state = mrb_mod_cv_get(mrb, obj, mrb_intern(mrb, "cfunc_state"));
     return (struct cfunc_state *)mrb_voidp(state);
 }
 

@@ -54,7 +54,6 @@ module CFunc
                     args[idx] = arg_type.new(args[idx])
                 end
             end
-            
             CFunc::call(@result_type, self, *args)
         end
     end
