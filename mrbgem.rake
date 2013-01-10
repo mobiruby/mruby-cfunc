@@ -13,14 +13,15 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
  
   spec.mruby_ldflags << %w(-all_load)
   spec.mruby_libs << "-ldl"
-  
+
   if `uname`.chomp == 'Darwin'
-    spec.mruby_libs << "-Wl,-allow_stack_execute"
+    spec.cflags << %w(-pthread)
+    spec.mruby_ldflags << %w(-Wl,-allow_stack_execute)
   else
     spec.cflags << %w(-pthread)
-    spec.mruby_cflags << %w(-pthread -rdynamic)
-    spec.mruby_ldflags << %w(-pthread)
-    spec.mruby_libs << "-Wl,--export-dynamic"
+    spec.mruby_cflags << %w(-pthread)
+    spec.mruby_ldflags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
+    spec.mruby_libs.unshift "-Wl,--no-whole-archive"
   end
   # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
   # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")

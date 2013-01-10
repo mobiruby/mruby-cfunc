@@ -11,8 +11,8 @@ if __FILE__ == $PROGRAM_NAME
 end
 
 MRuby::Build.new do |conf|
-  conf.cc = ENV['CC'] || 'clang'
-  conf.ld = ENV['LD'] || 'clang'
+  conf.cc = ENV['CC'] || 'gcc'
+  conf.ld = ENV['LD'] || 'gcc'
   conf.ar = ENV['AR'] || 'ar'
   # conf.cxx = conf.cc
   # conf.objcc = conf.cc
