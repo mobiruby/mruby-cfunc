@@ -12,16 +12,17 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   # spec.cflagqs = ''
  
   spec.mruby_ldflags << %w(-all_load)
-
   spec.mruby_libs << "-ldl"
+  
   if `uname`.chomp == 'Darwin'
     spec.mruby_libs << "-Wl,-allow_stack_execute"
   else
     spec.cflags << %w(-pthread)
     spec.mruby_cflags << %w(-pthread -rdynamic)
+    spec.mruby_ldflags << %w(-pthread)
     spec.mruby_libs << "-Wl,--export-dynamic"
   end
-  #spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
+  # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
   # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")
   # spec.objs << ["#{LIBFFI_DIR}/lib/libffi.a"]
   # spec.test_rbfiles = Dir.glob("#{dir}/test/*.rb")
