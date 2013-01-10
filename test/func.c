@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 struct STest {
     int8_t x;
@@ -21,7 +22,7 @@ struct STest2 cfunc_test_func2(struct STest2 val) {
     return val;
 };
 
-int cfunc_test_func3(int (*func)(int, int)) {
+int cfunc_test_func3(int (*func)(uint32_t, uint32_t)) {
     return func(10, 20);
 }
 

@@ -1,6 +1,6 @@
 mobiruby_test "CFunc::closure1" do
   val = 5
-  callback = CFunc::Closure.new(CFunc::Int, [CFunc::Int, CFunc::Int]) do |a, b|
+  callback = CFunc::Closure.new(CFunc::Int, [CFunc::SInt32, CFunc::SInt32]) do |a, b|
     a.to_i * b.to_i * val
   end
 
