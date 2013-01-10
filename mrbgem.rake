@@ -39,7 +39,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
 
   libffi_a = "#{libffi_dir}/lib/libffi.a"
   unless File.exists?(libffi_a)
-    sh %Q{(cd #{filename libffi_dir} && ./configure --prefix=`pwd` && make clean install CFLAGS="#{build.cflags.join(' ')}")}
+    sh %Q{(cd #{filename libffi_dir} && ./configure --prefix=`pwd` && make clean install CC=#{build.cc} CFLAGS="#{build.cflags.join(' ')}")}
   end
 
   libffi_objs = "#{libffi_dir}/objs"
