@@ -10,13 +10,12 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   TAR = 'tar'
 
   # spec.cflagqs = ''
- 
-  spec.mruby_ldflags << %w(-all_load)
+  # spec.mruby_ldflags << %w()
   spec.mruby_libs << "-ldl"
 
   if `uname`.chomp == 'Darwin'
     spec.cflags << %w(-pthread)
-    spec.mruby_ldflags << %w(-Wl,-allow_stack_execute)
+    spec.mruby_ldflags << %w(-Wl,-allow_stack_execute -all_load)
   else
     spec.cflags << %w(-pthread)
     spec.mruby_cflags << %w(-pthread)
