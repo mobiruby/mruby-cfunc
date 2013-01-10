@@ -4,7 +4,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.authors = 'MobiRuby developers'
   
   LIBFFI_VERSION = '3.0.11'
-  LIBFFI_URL = "https://nodeload.github.com/atgreen/libffi/zip/v#{LIBFFI_VERSION}"
+  LIBFFI_URL = "ftp://sourceware.org/pub/libffi/libffi-#{LIBFFI_VERSION}.tar.gz"
   DOWNLOADER = %Q{curl "#{LIBFFI_URL}"}
   # DOWNLOADER = %Q{wget -o- "#{LIBFFI_URL}"}
   TAR = 'tar'
