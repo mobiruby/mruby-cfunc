@@ -9,18 +9,16 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   # DOWNLOADER = %Q{wget -o- "#{LIBFFI_URL}"}
   TAR = 'tar'
 
-  # spec.cflagqs = ''
-  # spec.mruby_ldflags << %w()
-  spec.mruby_libs << "-ldl"
+  spec.mruby.linker.libraries << "dl"
 
   if `uname`.chomp == 'Darwin'
-    spec.cflags << %w(-pthread)
-    spec.mruby_ldflags << %w(-Wl,-allow_stack_execute -all_load)
+    spec.cc.flags << %w(-pthread)
+    spec.linker.flags << %w(-Wl,-allow_stack_execute -all_load)
   else
-    spec.cflags << %w(-pthread)
-    spec.mruby_cflags << %w(-pthread)
-    spec.mruby_ldflags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
-    spec.mruby_libs.unshift "-Wl,--no-whole-archive"
+    spec.cc.flags << %w(-pthread)
+    spec.mruby.cc.flags << %w(-pthread)
+    spec.mruby.linker.flags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
+    spec.mruby.libraries.unshift "-Wl,--no-whole-archive"
   end
   # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
   # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")
@@ -39,13 +37,13 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
 
   libffi_a = "#{libffi_dir}/lib/libffi.a"
   unless File.exists?(libffi_a)
-    sh %Q{(cd #{filename libffi_dir} && ./configure --prefix=`pwd` && make clean install CC=#{build.cc} CFLAGS="#{build.cflags.join(' ')}")}
+    sh %Q{(cd #{filename libffi_dir} && ./configure --prefix=`pwd` && make clean install CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags}")}
   end
 
   libffi_objs = "#{libffi_dir}/objs"
   unless File.directory?(libffi_objs)
     sh %Q{cp #{filename libffi_dir+"/lib/libffi-#{LIBFFI_VERSION}/include"}/* #{dir}/include}
-    sh %Q{mkdir -p #{filename libffi_objs} && cd #{filename libffi_objs}; #{build.ar} x #{filename File.expand_path(libffi_a)} }
+    sh %Q{mkdir -p #{filename libffi_objs} && cd #{filename libffi_objs}; #{build.archiver.command} x #{filename File.expand_path(libffi_a)} }
   end
 
   spec.objs << Dir.glob("#{libffi_objs}/*.o")
@@ -56,8 +54,10 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.test_objs << rubyvm1_o
 
   file rubyvm1_o => rubyvm1_c
-  task rubyvm1_c => rubyvm1_rbx do |t|
-    build.compile_mruby rubyvm1_c, rubyvm1_rbx, 'mruby_data__rubyvm1'
+  file rubyvm1_c => rubyvm1_rbx do |t|
+    open(rubyvm1_c, 'w') do |f|
+      build.mrbc.run f, rubyvm1_rbx, 'mruby_data__rubyvm1'
+    end
   end
 
 end
