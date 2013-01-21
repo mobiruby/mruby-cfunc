@@ -14,4 +14,3 @@ MRuby::Build.new do |conf|
   conf.cc.defines << %w(MRB_INT64)
   conf.gem File.expand_path(File.dirname(__FILE__))
 end
-

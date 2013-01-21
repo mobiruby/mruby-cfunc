@@ -1,6 +1,6 @@
 .PHONY : test
 test:
-	ruby ./test_build_config.rb test --verbose
+	ruby ./run_test.rb test --verbose
 
 .PHONY : all
 all:
@@ -8,4 +8,4 @@ all:
 
 .PHONY : clean
 clean:
-	ruby ./test_build_config.rb clean
+	ruby ./run_test.rb clean
