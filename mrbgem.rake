@@ -1,4 +1,8 @@
 require 'open-uri'
+class MRuby::Gem::Specification
+  attr_accessor :libffi_a
+end
+
 MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.license = 'MIT'
   spec.authors = 'MobiRuby developers'
@@ -9,7 +13,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   # DOWNLOADER = %Q{wget -o- "#{LIBFFI_URL}"}
   TAR = 'tar'
 
-  spec.mruby.linker.libraries << "dl"
+  spec.mruby.linker.libraries << %w(ffi dl)
 
   if `uname`.chomp == 'Darwin'
     spec.cc.flags << %w(-pthread)
@@ -27,26 +31,19 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   # spec.test_objs = Dir.glob("#{dir}/test/*.{c,cpp,m,asm,S}").map { |f| f.relative_path_from(dir).pathmap("#{build_dir}/%X.o") }
   spec.test_preload = "#{dir}/test/mobitest.rb"
 
-  build_root = "build/libffi/#{build.name}"
-  libffi_dir = "#{build_root}/libffi-#{LIBFFI_VERSION}"
-  unless File.directory?(libffi_dir)
-    FileUtils.mkdir_p build_root
-    puts "Downloading #{LIBFFI_URL}"
-    sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename build_root}"
-  end
-
-  libffi_a = "#{libffi_dir}/lib/libffi.a"
+  libffi_build_root = "build/libffi/#{build.name}"
+  libffi_dir = "#{libffi_build_root}/libffi-#{LIBFFI_VERSION}"
+  @libffi_a ||= "#{libffi_dir}/lib/libffi.a"
   unless File.exists?(libffi_a)
-    sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags}" ./configure --prefix=`pwd` && make clean install)}
+    unless File.directory?(libffi_dir)
+      FileUtils.mkdir_p libffi_build_root
+      puts "Downloading #{LIBFFI_URL}"
+      sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename libffi_build_root}"
+    end
+    sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
   end
 
-  libffi_objs = "#{libffi_dir}/objs"
-  unless File.directory?(libffi_objs)
-    sh %Q{cp #{filename libffi_dir+"/lib/libffi-#{LIBFFI_VERSION}/include"}/* #{dir}/include}
-    sh %Q{mkdir -p #{filename libffi_objs} && cd #{filename libffi_objs}; #{build.archiver.command} x #{filename File.expand_path(libffi_a)} }
-  end
-
-  spec.objs << Dir.glob("#{libffi_objs}/*.o")
+  spec.linker.library_paths << File.dirname(@libffi_a)
 
   rubyvm1_rbx = "#{dir}/test/_rubyvm1.rbx"
   rubyvm1_c = "#{build_dir}/test/_rubyvm1.c"
