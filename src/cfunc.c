@@ -35,6 +35,7 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
     set_cfunc_state(mrb, ns, state);
+    state->namespace = ns;
 
     init_cfunc_type(mrb, ns);
     init_cfunc_pointer(mrb, ns);
