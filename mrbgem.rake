@@ -18,6 +18,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     spec.cc.flags << %w(-pthread)
     spec.mruby.cc.flags << %w(-pthread)
     spec.mruby.linker.flags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
+    spec.mruby.linker.flags_before_libraries << %w(-Wl,--no-whole-archive)
   end
   # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
   # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")
