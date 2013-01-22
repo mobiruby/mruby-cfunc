@@ -36,7 +36,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   libffi_a = "#{libffi_dir}/lib/libffi.a"
   libffi_common_a = "build/libffi/libffi.a"
   if File.exists?(libffi_common_a)
-    spec.linker.library_paths << File.dirname(libffi_common_a)
+    libffi_a = libffi_common_a
   else
     unless File.exists?(libffi_a)
       unless File.directory?(libffi_dir)
@@ -46,7 +46,11 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
       end
       sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
     end
-    spec.linker.library_paths << File.dirname(libffi_a)
+  end
+  
+  spec.linker.library_paths << File.dirname(libffi_a)
+  [spec.cc, spec.cxx, spec.objc, spec.mruby.cc, spec.mruby.cxx, spec.mruby.objc].each do |cc|
+    cc.include_paths << File.dirname(libffi_a)
   end
 
   rubyvm1_rbx = "#{dir}/test/_rubyvm1.rbx"
