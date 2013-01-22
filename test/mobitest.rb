@@ -36,6 +36,16 @@ class MobiRubyTest
   def assert_not_equal(a, b)
     assert(!(a===b), "<#{a.inspect}> not expected but was <#{b.inspect}>")
   end
+
+  def assert_raise(*args)
+    failure_message = args.last.is_a?(String) ? args.pop : nil
+    begin
+      yield
+      assert(false, "#{args} expected but none was thrown.")
+    rescue Exception => e
+      assert(args.include?(e.class), "#{args} expected but was #{e}.")
+    end
+  end
 end
 
 def mobiruby_test(label, &block)
