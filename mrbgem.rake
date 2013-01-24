@@ -6,16 +6,25 @@ end
 MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.license = 'MIT'
   spec.authors = 'MobiRuby developers'
-  
+
   LIBFFI_VERSION = '3.0.11'
-  LIBFFI_URL = "ftp://sourceware.org/pub/libffi/libffi-#{LIBFFI_VERSION}.tar.gz"
-  DOWNLOADER = %Q{curl "#{LIBFFI_URL}"}
+  LIBFFI_URL = "https://github.com/atgreen/libffi/archive/v#{LIBFFI_VERSION}.tar.gz"
+  DOWNLOADER = %Q{curl -L -k "#{LIBFFI_URL}"}
   # DOWNLOADER = %Q{wget -o- "#{LIBFFI_URL}"}
   TAR = 'tar'
 
   spec.mruby.linker.libraries << %w(ffi dl)
 
-  if `uname`.chomp == 'Darwin'
+  if ENV['OS'] == 'Windows_NT'
+    unless ENV['MSYSCON']
+      puts "========================================================"
+      puts "=== On windows, mruby-cfunc require MSYS environment ==="
+      puts "========================================================"
+      raise
+    end
+    spec.mruby.linker.flags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
+    spec.mruby.linker.flags_before_libraries << %w(-Wl,--no-whole-archive)
+  elsif `uname`.chomp == 'Darwin'
     spec.cc.flags << %w(-pthread)
     spec.linker.flags << %w(-Wl,-allow_stack_execute -all_load)
   else
@@ -33,6 +42,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
 
   libffi_build_root = "build/libffi/#{build.name}"
   libffi_dir = "#{libffi_build_root}/libffi-#{LIBFFI_VERSION}"
+  libffi_h = "#{libffi_dir}/lib/libffi-#{LIBFFI_VERSION}/include"
   libffi_a = "#{libffi_dir}/lib/libffi.a"
   libffi_common_a = "build/libffi/libffi.a"
   if File.exists?(libffi_common_a)
@@ -44,13 +54,14 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
         puts "Downloading #{LIBFFI_URL}"
         sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename libffi_build_root}"
       end
-      sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
+      # NOTE: Windows build require MSYS environment.
+      sh %Q{(cd #{filename libffi_dir} && sh ./configure --prefix="#{File::expand_path(filename libffi_dir)}" && make clean install)}
     end
   end
-  
+
   spec.linker.library_paths << File.dirname(libffi_a)
   [spec.cc, spec.cxx, spec.objc, spec.mruby.cc, spec.mruby.cxx, spec.mruby.objc].each do |cc|
-    cc.include_paths << File.dirname(libffi_a)
+    cc.include_paths << libffi_h
   end
 
   rubyvm1_rbx = "#{dir}/test/_rubyvm1.rbx"
