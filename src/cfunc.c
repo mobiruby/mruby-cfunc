@@ -46,3 +46,7 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
 }
+
+void
+mrb_mruby_cfunc_gem_final(mrb_state* mrb)
+}
