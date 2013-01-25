@@ -16,12 +16,6 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.mruby.linker.libraries << %w(ffi dl)
 
   if ENV['OS'] == 'Windows_NT'
-    unless ENV['MSYSCON']
-      puts "========================================================"
-      puts "=== On windows, mruby-cfunc require MSYS environment ==="
-      puts "========================================================"
-      raise
-    end
     spec.mruby.linker.flags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
     spec.mruby.linker.flags_before_libraries << %w(-Wl,--no-whole-archive)
   elsif `uname`.chomp == 'Darwin'
@@ -33,35 +27,48 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     spec.mruby.linker.flags << %w(-pthread -Wl,--export-dynamic -Wl,--whole-archive)
     spec.mruby.linker.flags_before_libraries << %w(-Wl,--no-whole-archive)
   end
-  # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
-  # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")
-  # spec.objs << ["#{LIBFFI_DIR}/lib/libffi.a"]
-  # spec.test_rbfiles = Dir.glob("#{dir}/test/*.rb")
-  # spec.test_objs = Dir.glob("#{dir}/test/*.{c,cpp,m,asm,S}").map { |f| f.relative_path_from(dir).pathmap("#{build_dir}/%X.o") }
-  spec.test_preload = "#{dir}/test/mobitest.rb"
 
-  libffi_build_root = "build/libffi/#{build.name}"
-  libffi_dir = "#{libffi_build_root}/libffi-#{LIBFFI_VERSION}"
-  libffi_h = "#{libffi_dir}/lib/libffi-#{LIBFFI_VERSION}/include"
-  libffi_a = "#{libffi_dir}/lib/libffi.a"
-  libffi_common_a = "build/libffi/libffi.a"
-  if File.exists?(libffi_common_a)
-    libffi_a = libffi_common_a
-  else
-    unless File.exists?(libffi_a)
-      unless File.directory?(libffi_dir)
-        FileUtils.mkdir_p libffi_build_root
-        puts "Downloading #{LIBFFI_URL}"
-        sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename libffi_build_root}"
-      end
-      # NOTE: Windows build require MSYS environment.
-      sh %Q{(cd #{filename libffi_dir} && sh ./configure --prefix="#{File::expand_path(filename libffi_dir)}" && make clean install)}
+  unless ENV['MRUBY_CFUNC_USE_SYSTEM_LIBFFI']
+    if ENV['OS'] == 'Windows_NT' && !ENV['MSYSCON']
+      puts "=================================================================="
+      puts "=== On windows, mruby-cfunc require MSYS environment.          ==="
+      puts "=== You must run 'rake' on MSYS shell. Or if you have libffi.a ==="
+      puts "=== on mingw/lib already, set following environment variable:  ==="
+      puts "===    set MRUBY_CFUNC_USE_SYSTEM_LIBFFI=1                     ==="
+      puts "=================================================================="
+      raise
     end
-  end
 
-  spec.linker.library_paths << File.dirname(libffi_a)
-  [spec.cc, spec.cxx, spec.objc, spec.mruby.cc, spec.mruby.cxx, spec.mruby.objc].each do |cc|
-    cc.include_paths << libffi_h
+    # spec.mruby_includes << ["#{LIBFFI_DIR}/lib/libffi-#{LIBFFI_VERSION}/include"]
+    # spec.rbfiles = Dir.glob("#{dir}/mrblib/*.rb")
+    # spec.objs << ["#{LIBFFI_DIR}/lib/libffi.a"]
+    # spec.test_rbfiles = Dir.glob("#{dir}/test/*.rb")
+    # spec.test_objs = Dir.glob("#{dir}/test/*.{c,cpp,m,asm,S}").map { |f| f.relative_path_from(dir).pathmap("#{build_dir}/%X.o") }
+    spec.test_preload = "#{dir}/test/mobitest.rb"
+
+    libffi_build_root = "build/libffi/#{build.name}"
+    libffi_dir = "#{libffi_build_root}/libffi-#{LIBFFI_VERSION}"
+    libffi_h = "#{libffi_dir}/lib/libffi-#{LIBFFI_VERSION}/include"
+    libffi_a = "#{libffi_dir}/lib/libffi.a"
+    libffi_common_a = "build/libffi/libffi.a"
+    if File.exists?(libffi_common_a)
+      libffi_a = libffi_common_a
+    else
+      unless File.exists?(libffi_a)
+        unless File.directory?(libffi_dir)
+          FileUtils.mkdir_p libffi_build_root
+          puts "Downloading #{LIBFFI_URL}"
+          sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename libffi_build_root}"
+        end
+        # NOTE: Windows build require MSYS environment.
+        sh %Q{(cd #{filename libffi_dir} && sh ./configure --prefix="#{File::expand_path(filename libffi_dir)}" && make clean install)}
+      end
+    end
+
+    spec.linker.library_paths << File.dirname(libffi_a)
+    [spec.cc, spec.cxx, spec.objc, spec.mruby.cc, spec.mruby.cxx, spec.mruby.objc].each do |cc|
+      cc.include_paths << libffi_h
+    end
   end
 
   rubyvm1_rbx = "#{dir}/test/_rubyvm1.rbx"
