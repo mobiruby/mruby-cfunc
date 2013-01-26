@@ -12,5 +12,8 @@ end
 MRuby::Build.new do |conf|
   toolchain :gcc
   conf.cc.defines << %w(MRB_INT64)
-  conf.gem File.expand_path(File.dirname(__FILE__)) 
+  conf.gem File.expand_path(File.dirname(__FILE__)) do |g|
+    g.use_pkg_config
+#    g.download_libffi
+  end
 end

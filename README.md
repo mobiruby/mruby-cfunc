@@ -7,6 +7,15 @@ Interface to C functions on mruby. it's based on [libffi](http://sourceware.org/
 
 It's mrbgems.
 
+When you use in your project, please add below to your ``build_config.rb``.
+
+```ruby
+  conf.gem 'path/to/here' do |g|
+    # g.use_pkg_config # use pkg-config for libffi linking
+    # g.download_libffi # download and link latest libffi
+  end
+```
+
 If you want to run tests, please run below command.
 
     make test

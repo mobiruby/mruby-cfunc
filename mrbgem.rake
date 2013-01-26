@@ -1,17 +1,41 @@
 require 'open-uri'
-class MRuby::Gem::Specification
-  attr_accessor :libffi_a
-end
 
 MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.license = 'MIT'
   spec.authors = 'MobiRuby developers'
-  
-  LIBFFI_VERSION = '3.0.11'
-  LIBFFI_URL = "ftp://sourceware.org/pub/libffi/libffi-#{LIBFFI_VERSION}.tar.gz"
-  DOWNLOADER = %Q{curl "#{LIBFFI_URL}"}
-  # DOWNLOADER = %Q{wget -o- "#{LIBFFI_URL}"}
-  TAR = 'tar'
+
+  def spec.use_pkg_config(pkg_config='pkg-config')
+    self.linker.flags << `"#{pkg_config}" libffi --libs-only-L --libs-only-other`.chomp
+    [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
+      cc.include_paths << `"#{pkg_config}" libffi --cflags`.chomp
+    end
+  end
+
+  def spec.download_libffi(libffi_version = '3.0.11', tar = 'tar')
+    libffi_url = "ftp://sourceware.org/pub/libffi/libffi-#{libffi_version}.tar.gz"
+    libffi_build_root = "build/libffi/#{build.name}"
+    libffi_dir = "#{libffi_build_root}/libffi-#{libffi_version}"
+    libffi_a = "#{libffi_dir}/lib/libffi.a"
+
+    unless File.exists?(libffi_a)
+      puts "Downloading #{libffi_url}"
+      open(libffi_url, 'r') do |ftp|
+        libffi_tar = ftp.read
+        puts "Extracting"
+        FileUtils.mkdir_p libffi_build_root
+        IO.popen("#{tar} xfz - -C #{filename libffi_build_root}", 'w') do |f|
+          f.write libffi_tar
+        end
+        puts "Done"
+      end
+      sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
+    end
+    
+    self.linker.library_paths << File.dirname(libffi_a)
+    [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
+      cc.include_paths << File.dirname(libffi_a)
+    end
+  end
 
   spec.mruby.linker.libraries << %w(ffi dl)
 
@@ -30,28 +54,6 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   # spec.test_rbfiles = Dir.glob("#{dir}/test/*.rb")
   # spec.test_objs = Dir.glob("#{dir}/test/*.{c,cpp,m,asm,S}").map { |f| f.relative_path_from(dir).pathmap("#{build_dir}/%X.o") }
   spec.test_preload = "#{dir}/test/mobitest.rb"
-
-  libffi_build_root = "build/libffi/#{build.name}"
-  libffi_dir = "#{libffi_build_root}/libffi-#{LIBFFI_VERSION}"
-  libffi_a = "#{libffi_dir}/lib/libffi.a"
-  libffi_common_a = "build/libffi/libffi.a"
-  if File.exists?(libffi_common_a)
-    libffi_a = libffi_common_a
-  else
-    unless File.exists?(libffi_a)
-      unless File.directory?(libffi_dir)
-        FileUtils.mkdir_p libffi_build_root
-        puts "Downloading #{LIBFFI_URL}"
-        sh "#{DOWNLOADER} | #{TAR} xfz - -C #{filename libffi_build_root}"
-      end
-      sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
-    end
-  end
-  
-  spec.linker.library_paths << File.dirname(libffi_a)
-  [spec.cc, spec.cxx, spec.objc, spec.mruby.cc, spec.mruby.cxx, spec.mruby.objc].each do |cc|
-    cc.include_paths << File.dirname(libffi_a)
-  end
 
   rubyvm1_rbx = "#{dir}/test/_rubyvm1.rbx"
   rubyvm1_c = "#{build_dir}/test/_rubyvm1.c"
