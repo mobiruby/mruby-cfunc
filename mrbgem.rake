@@ -33,7 +33,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     
     self.linker.library_paths << File.dirname(libffi_a)
     [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
-      cc.include_paths << File.dirname(libffi_a)
+      cc.include_paths << File.join(File.dirname(libffi_a), "libffi-#{libffi_version}", 'include')
     end
   end
 
