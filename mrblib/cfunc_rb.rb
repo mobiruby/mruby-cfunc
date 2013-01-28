@@ -10,7 +10,7 @@ end
 
 module CFunc
     def self.Int(val); Int.new(val) end
-    def self.UInt8(val); UIn8.new(val) end
+    def self.UInt8(val); UInt8.new(val) end
     def self.SInt8(val); SInt8.new(val) end
     def self.UInt16(val); UInt16.new(val) end
     def self.SInt16(val); SInt16.new(val) end
