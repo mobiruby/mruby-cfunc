@@ -12,6 +12,7 @@
 #include "cfunc_closure.h"
 #include "cfunc_type.h"
 #include "cfunc_rubyvm.h"
+#include "cfunc_platform.h"
 
 #include "mruby/proc.h"
 #include "mruby/dump.h"
@@ -37,12 +38,14 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
     set_cfunc_state(mrb, ns, state);
     state->namespace = ns;
 
-    init_cfunc_type(mrb, ns);
-    init_cfunc_pointer(mrb, ns);
-    init_cfunc_struct(mrb, ns);
-    init_cfunc_closure(mrb, ns);
-    init_cfunc_call(mrb, ns);
-    init_cfunc_rubyvm(mrb, ns);
+	int ai = mrb_gc_arena_save(mrb);
+    init_cfunc_type(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_pointer(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_struct(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_closure(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_call(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_rubyvm(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+	init_cfunc_platform(mrb, ns); mrb_gc_arena_restore(mrb, ai);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
 }
