@@ -21,11 +21,6 @@ If you want to run tests, please run below command.
     make test
 
 
-## Limitation
-
-* mrb_int should be 64bit int. define MRB_INT64 in mrbconf.h
-
-
 ## Todo
 
 * Test!

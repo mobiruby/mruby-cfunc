@@ -9,7 +9,6 @@ mobiruby_test "CFunc::UInt64" do
   uint.value = 1
   assert_equal 1, uint.low
   assert_equal 0, uint.high
-  assert_equal 0, uint.high
   assert_equal 1, uint.value
   assert_equal 1, uint.to_i
   assert_equal 1.0, uint.to_f
@@ -18,7 +17,6 @@ mobiruby_test "CFunc::UInt64" do
   uint.high = 1
   assert_equal 2, uint.low
   assert_equal 1, uint.high
-  assert_equal (1<<32)+2, uint.value
   assert_equal "4294967298", uint.to_s
   uint_ptr = uint.addr
   assert uint_ptr.is_a?(CFunc::Pointer)

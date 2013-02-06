@@ -26,13 +26,15 @@ mobiruby_test "CFunc::SInt64" do
     assert_equal idx, CFunc::SInt64.refer(sint_ptr).value
   end
 
-  sint.value = (0x7fffffff << 32) + 0xffffffff # 9223372036854775807 # MAX
-  assert_equal (0x7fffffff << 32) + 0xffffffff, sint.value
-  assert_equal (0x7fffffff << 32) + 0xffffffff, CFunc::SInt64.get(sint_ptr)
+  sint.value = 0x7fffffff
+  assert_equal 0x7fffffff, sint.low
+  assert_equal 0x00000000, sint.high
+  assert_equal 0x7fffffff, CFunc::SInt64.get(sint_ptr)
 
-  sint.value = -1 * ((0x7fffffff << 32) + 0xffffffff) - 1 # -9223372036854775808 # MIN
-  assert_equal (-1) * ((0x7fffffff << 32) + 0xffffffff) - 1, sint.value
-  assert_equal (-1) * ((0x7fffffff << 32) + 0xffffffff) - 1, CFunc::SInt64.get(sint_ptr)
+  sint.value = -1 
+  assert_equal 0xffffffff, sint.low
+  assert_equal 0xffffffff, sint.high
+  assert_equal -1, CFunc::SInt64.get(sint_ptr)
 
   sint = CFunc::SInt64.new(CFunc::SInt16.new(16))
   assert_equal 16, sint.value

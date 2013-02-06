@@ -29,10 +29,6 @@ cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
 void
 mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 {
-    if(sizeof(mrb_int) < 8) {
-        fprintf(stderr, "mruby-cfunc require 64bit for mrb_int.");
-    }
-
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
     set_cfunc_state(mrb, ns, state);

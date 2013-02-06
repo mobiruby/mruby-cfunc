@@ -24,19 +24,22 @@ mobiruby_test "CFunc::SInt32" do
     assert_equal idx, CFunc::SInt32.refer(sint_ptr).value
   end
 
-  sint.value = (1<<31)-1
-  assert_equal (1<<31)-1, sint.value
-  assert_equal (1<<31)-1, CFunc::SInt32.get(sint_ptr)
+  sint32_max = 2147483647
+  sint32_min = -2147483647
 
-  CFunc::SInt32.set(sint_ptr, (1<<31))
-  assert_not_equal (1<<31), sint.value
+  sint.value = sint32_max
+  assert_equal sint32_max, sint.value
+  assert_equal sint32_max, CFunc::SInt32.get(sint_ptr)
 
-  sint.value = (-1<<31)
-  assert_equal (-1<<31), sint.value
-  assert_equal (-1<<31), CFunc::SInt32.get(sint_ptr)
+  CFunc::SInt32.set(sint_ptr, sint32_max+1)
+  assert_not_equal sint32_max+1, sint.value
 
-  CFunc::SInt32.set(sint_ptr, (-1<<31)-1)
-  assert_not_equal (-1<<31)-1, sint.value
+  sint.value = sint32_min
+  assert_equal sint32_min, sint.value
+  assert_equal sint32_min, CFunc::SInt32.get(sint_ptr)
+
+  CFunc::SInt32.set(sint_ptr, sint32_min-1)
+  assert_not_equal sint32_min , sint.value
 
   sint = CFunc::SInt32.new(CFunc::SInt16.new(16))
   assert_equal 16, sint.value
