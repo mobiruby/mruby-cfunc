@@ -84,8 +84,7 @@ cfunc_pointer_new_with_pointer(mrb_state *mrb, void *p, bool autofree)
 
     set_cfunc_pointer_data(data, p);
 
-    struct RClass *mod = (struct RClass *)mrb_object(mrb_vm_const_get(mrb, mrb_intern(mrb, "CFunc")));
-    struct cfunc_state *state = cfunc_state(mrb, mod);
+    struct cfunc_state *state = cfunc_state(mrb, NULL);
     return mrb_obj_value(Data_Wrap_Struct(mrb, state->pointer_class, &cfunc_pointer_data_type, data));
 }
 
