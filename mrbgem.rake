@@ -37,7 +37,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     end
   end
 
-  spec.mruby.linker.libraries << %w(ffi dl)
+  spec.linker.libraries << %w(ffi dl pthread)
 
   if `uname`.chomp == 'Darwin'
     spec.cc.flags << %w(-pthread)
