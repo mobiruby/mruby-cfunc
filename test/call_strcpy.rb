@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::call_strcpy" do
+  skip if CFunc::Platform.is_win32?
+
   ptr = CFunc::Pointer.malloc(12)
 
   result = CFunc::call(CFunc::Pointer, "strcpy", ptr, "Hello")

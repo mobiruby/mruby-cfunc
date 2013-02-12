@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::define_cfunc" do
+  skip if CFunc::Platform.is_win32?
+
   CFunc::define_function CFunc::Pointer, "strcpy", CFunc::Pointer, CFunc::Pointer
   CFunc::define_function CFunc::Pointer, "strcat"
   CFunc::define_function CFunc::Int, "cfunc_test_func4", CFunc::Int, CFunc::Int

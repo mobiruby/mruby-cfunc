@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::Function pointer" do
+  skip if CFunc::Platform.is_win32?
+
   dlh = CFunc::call(CFunc::Pointer, "dlopen", nil, nil)
 
   strcpy_ptr = CFunc::call(CFunc::Pointer, "dlsym", dlh, "strcpy")

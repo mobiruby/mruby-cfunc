@@ -1,6 +1,9 @@
 $ok_test, $ko_test, $kill_test = 0, 0, 0
 $asserts = []
 
+class MobiRubyTestSkip < NotImplementedError
+end
+
 class MobiRubyTest
   def initialize(label)
     @label = label
@@ -11,9 +14,14 @@ class MobiRubyTest
     begin
       instance_eval(&block)
     rescue Exception => e
-      $asserts.push "Error: #{@label} ##{@index} #{e}"
-      $kill_test += 1
-      print('X')
+      if e.class.to_s != 'MobiRubyTestSkip'
+        $asserts.push "Error: #{@label} ##{@index} #{e}"
+        $kill_test += 1
+        print('X')
+      else
+        $asserts.push "Skip: #{@label} ##{@index}"
+        print('?')
+      end
     end
   end
 
@@ -27,6 +35,10 @@ class MobiRubyTest
       $ok_test += 1
       print('.')
     end
+  end
+
+  def skip
+    raise MobiRubyTestSkip.new
   end
 
   def assert_equal(a, b)

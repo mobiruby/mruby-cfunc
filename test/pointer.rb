@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::Pointer" do
+  skip if CFunc::Platform.is_win32?
+
   ptr1 = CFunc::Pointer.new
   assert ptr1.is_null?
 
