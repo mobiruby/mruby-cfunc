@@ -39,7 +39,9 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
 
   spec.linker.libraries << %w(ffi dl pthread)
 
-  if `uname`.chomp == 'Darwin'
+  if ENV['OS'] == 'Windows_NT'
+    spec.cc.flags << %w(-pthread)
+  elsif `uname`.chomp == 'Darwin'
     spec.cc.flags << %w(-pthread)
     spec.linker.flags << %w(-Wl,-allow_stack_execute -all_load)
   else
