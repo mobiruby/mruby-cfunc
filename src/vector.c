@@ -70,7 +70,6 @@ vector_p create_vector(){
 vector_p subvector(vector_p vec, int start, int end){
 	vector_p subvec = create_vector();
 	int i;
-	void * val;
 	for(i=start; i<end; i++){
 		vector_add(subvec, vec->data[i]);
 	}
@@ -133,7 +132,6 @@ void vector_remove(vector_p vec, size_t i){
 
 int vector_index(vector_p vec, void* data){
 	int x;
-	void* check;
 	for(x=0;x<vec->length;++x){
 		if(vec->data[x] == data){
 			return x;

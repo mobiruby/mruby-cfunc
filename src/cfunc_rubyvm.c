@@ -359,7 +359,6 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 {
     // init bindle data with RubyVM object
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_state *state = cfunc_state(mrb, c);
     struct cfunc_rubyvm_data *data = malloc(sizeof(struct cfunc_rubyvm_data));
     mrb_value self = mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_rubyvm_data_type, data));
 
@@ -394,7 +393,7 @@ init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module)
 
     struct RClass *rubyvm_class = mrb_define_class_under(mrb, module, "RubyVM", mrb->object_class);
     state->rubyvm_class = rubyvm_class;
-    set_cfunc_state(mrb, (struct RObject*)rubyvm_class, state);
+    set_cfunc_state(mrb, rubyvm_class, state);
 
     mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, ARGS_REQ(1));
     mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, ARGS_ANY());
