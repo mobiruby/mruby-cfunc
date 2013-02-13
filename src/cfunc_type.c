@@ -301,7 +301,6 @@ cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
     mrb_value pointer;
     mrb_get_args(mrb, "o", &pointer);
 
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
     uint64_t uint64 = *(uint64_t*)cfunc_pointer_ptr(pointer);
 
     if(uint64 > UINT32_MAX) {
@@ -387,7 +386,6 @@ cfunc_sint64_class_get(mrb_state *mrb, mrb_value klass)
     mrb_value pointer;
     mrb_get_args(mrb, "o", &pointer);
 
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
     int64_t sint64 = *(int64_t*)cfunc_pointer_ptr(pointer);
 
     if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
@@ -577,7 +575,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     struct RClass *type_class = mrb_define_class_under(mrb, module, "Type", mrb->object_class);
     MRB_SET_INSTANCE_TT(type_class, MRB_TT_DATA);
     state->type_class = type_class;
-    set_cfunc_state(mrb, (struct RObject*)type_class, state);
+    set_cfunc_state(mrb, type_class, state);
 
     int ai = mrb_gc_arena_save(mrb);
     mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, ARGS_REQ(1));

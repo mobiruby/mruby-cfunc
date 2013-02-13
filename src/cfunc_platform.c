@@ -43,7 +43,6 @@ cfunc_platform_is_macosx(mrb_state *mrb, mrb_value self)
 
 void init_cfunc_platform(mrb_state *mrb, struct RClass* module)
 {
-    struct cfunc_state *state = cfunc_state(mrb, module);
     struct RClass *struct_class = mrb_define_class_under(mrb, module, "Platform", mrb->object_class);
     
     mrb_define_class_method(mrb, struct_class, "is_posix?", cfunc_platform_is_posix, ARGS_NONE());
