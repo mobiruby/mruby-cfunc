@@ -30,6 +30,17 @@ cfunc_platform_is_win32(mrb_state *mrb, mrb_value self)
 }
 
 
+static mrb_value
+cfunc_platform_is_macosx(mrb_state *mrb, mrb_value self)
+{
+#ifdef __APPLE__
+    return mrb_true_value();
+#else
+    return mrb_false_value();
+#endif
+}
+
+
 void init_cfunc_platform(mrb_state *mrb, struct RClass* module)
 {
     struct cfunc_state *state = cfunc_state(mrb, module);
@@ -37,4 +48,5 @@ void init_cfunc_platform(mrb_state *mrb, struct RClass* module)
     
     mrb_define_class_method(mrb, struct_class, "is_posix?", cfunc_platform_is_posix, ARGS_NONE());
     mrb_define_class_method(mrb, struct_class, "is_win32?", cfunc_platform_is_win32, ARGS_NONE());
+    mrb_define_class_method(mrb, struct_class, "is_macosx?", cfunc_platform_is_macosx, ARGS_NONE());
 }

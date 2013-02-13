@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::RubyVM" do
+  skip if CFunc::Platform.is_win32?
+
   vm = CFunc::RubyVM.thread('_rubyvm1')
 
   def sleep(sec)

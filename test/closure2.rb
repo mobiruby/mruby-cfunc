@@ -1,4 +1,6 @@
 mobiruby_test "CFunc::closure2" do
+  skip if CFunc::Platform.is_win32?
+
   compar = CFunc::Closure.new(CFunc::Int, [CFunc::Pointer(CFunc::Int), CFunc::Pointer(CFunc::Int)]) do |a, b|
     a.refer.to_i - b.refer.to_i
   end
