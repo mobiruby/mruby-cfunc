@@ -7,6 +7,8 @@ unless Object.const_defined?(:STest)
 end
 
 mobiruby_test "CFunc::call_struct1" do
+  skip if CFunc::Platform.is_win32?
+
   stest = STest.new
 
   assert_equal 10, stest[:x] = 10
