@@ -17,6 +17,34 @@
 #include <stdbool.h>
 #include "ffi.h"
 
+#ifdef _WIN32
+#include <windows.h>
+static void*
+get_proc_address(const char* funcname)
+{
+    HINSTANCE hInst = GetModuleHandle(NULL);
+    PBYTE pImage = (PBYTE) hInst;
+    PIMAGE_DOS_HEADER pDOS = (PIMAGE_DOS_HEADER) hInst;
+    PIMAGE_NT_HEADERS pPE;
+    PIMAGE_IMPORT_DESCRIPTOR pImpDesc;
+
+    if (pDOS->e_magic != IMAGE_DOS_SIGNATURE)
+        return NULL;
+    pPE = (PIMAGE_NT_HEADERS)(pImage + pDOS->e_lfanew);
+    if (pPE->Signature != IMAGE_NT_SIGNATURE)
+        return NULL;
+    pImpDesc = (PIMAGE_IMPORT_DESCRIPTOR)(pImage
+        + pPE->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+    for (; pImpDesc->FirstThunk; ++pImpDesc) {
+        HINSTANCE hLib = LoadLibrary((const char*)(pImage + pImpDesc->Name));
+        if (hLib) {
+            void* p = GetProcAddress(hLib, "strcpy");
+            if (p) return p;
+        }
+    }
+    return NULL;
+}
+#endif
 
 static mrb_value
 cfunc_call(mrb_state *mrb, mrb_value self)
@@ -25,14 +53,18 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     mrb_value mresult_type, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
-    
+
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
-    
+
     void *fp = NULL;
     if(mrb_string_p(mname) || mrb_symbol_p(mname)) {
+#ifndef _WIN32
         void *dlh = dlopen(NULL, RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
         dlclose(dlh);
+#else
+        fp = get_proc_address(mrb_string_value_ptr(mrb, mname));
+#endif
 
         if(fp == NULL) {
             mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
