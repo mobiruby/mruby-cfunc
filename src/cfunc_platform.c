@@ -31,7 +31,7 @@ cfunc_platform_is_win32(mrb_state *mrb, mrb_value self)
 
 
 static mrb_value
-cfunc_platform_is_macosx(mrb_state *mrb, mrb_value self)
+cfunc_platform_is_darwin(mrb_state *mrb, mrb_value self)
 {
 #ifdef __APPLE__
     return mrb_true_value();
@@ -47,5 +47,5 @@ void init_cfunc_platform(mrb_state *mrb, struct RClass* module)
     
     mrb_define_class_method(mrb, struct_class, "is_posix?", cfunc_platform_is_posix, ARGS_NONE());
     mrb_define_class_method(mrb, struct_class, "is_win32?", cfunc_platform_is_win32, ARGS_NONE());
-    mrb_define_class_method(mrb, struct_class, "is_macosx?", cfunc_platform_is_macosx, ARGS_NONE());
+    mrb_define_class_method(mrb, struct_class, "is_darwin?", cfunc_platform_is_darwin, ARGS_NONE());
 }
