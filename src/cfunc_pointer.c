@@ -174,7 +174,7 @@ cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
     char cstr[256];
     snprintf(cstr, sizeof(cstr), "<%s pointer=%p>", classname, get_cfunc_pointer_data(data));
     
-    return mrb_str_new2(mrb, cstr);
+    return mrb_str_new_cstr(mrb, cstr);
 }
 
 
