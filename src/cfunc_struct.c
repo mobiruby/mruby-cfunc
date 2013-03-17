@@ -53,11 +53,11 @@ cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
     mrb_get_args(mrb, "A", &elements_mrb);
     struct RArray *elements = mrb_ary_ptr(elements_mrb);
 
-    ffi_type *tm_type = malloc(sizeof(ffi_type));
+    ffi_type *tm_type = mrb_malloc(mrb, sizeof(ffi_type));
     tm_type->type = FFI_TYPE_STRUCT;
     tm_type->size = tm_type->alignment = 0;
 
-    ffi_type **tm_type_elements = malloc(sizeof(ffi_type*) * (elements->len + 1));
+    ffi_type **tm_type_elements = mrb_malloc(mrb, sizeof(ffi_type*) * (elements->len + 1));
     int i;
     for(i = 0; i < elements->len; ++i) {
         tm_type_elements[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(elements->ptr[i]))->ffi_type_value;
@@ -65,7 +65,7 @@ cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
     tm_type_elements[i] = NULL;
     tm_type->elements = tm_type_elements;
 
-    struct mrb_ffi_type *mft = malloc(sizeof(struct mrb_ffi_type));
+    struct mrb_ffi_type *mft = mrb_malloc(mrb, sizeof(struct mrb_ffi_type));
     mft->name = mrb_class_name(mrb, mrb_class_ptr(klass));
     mft->ffi_type_value = tm_type;
     mft->mrb_to_c = &cfunc_type_ffi_struct_mrb_to_c;

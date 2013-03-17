@@ -26,9 +26,9 @@ cfunc_pointer_destructor(mrb_state *mrb, void *p)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data *)p;
     if(data->autofree) {
-        free(get_cfunc_pointer_data(data));
+        mrb_free(mrb, get_cfunc_pointer_data(data));
     }
-    free(p);
+    mrb_free(mrb, p);
 }
 
 
@@ -62,14 +62,14 @@ void set_cfunc_pointer_data(struct cfunc_type_data *data, void *p)
 mrb_value
 cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
 {
-    struct cfunc_type_data *data = malloc(sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     data->refer = false;
     data->autofree = false;
 
     mrb_int alloc_size;
     mrb_get_args(mrb, "i", &alloc_size);
     
-    set_cfunc_pointer_data(data, malloc(alloc_size));
+    set_cfunc_pointer_data(data, mrb_malloc(mrb, alloc_size));
     
     return mrb_obj_value(Data_Wrap_Struct(mrb, mrb_class_ptr(klass), &cfunc_pointer_data_type, data));
 }
@@ -78,7 +78,7 @@ cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
 mrb_value
 cfunc_pointer_new_with_pointer(mrb_state *mrb, void *p, bool autofree)
 {
-    struct cfunc_type_data *data = malloc(sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     data->refer = false;
     data->autofree = autofree;
 
@@ -93,7 +93,7 @@ mrb_value
 cfunc_pointer_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_type_data *data = malloc(sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     data->refer = true;
     data->autofree = false;
 
@@ -114,7 +114,7 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
     struct cfunc_type_data *data;
     data = mrb_get_datatype(mrb, self, &cfunc_pointer_data_type);
     if (!data) {
-        data = malloc(sizeof(struct cfunc_type_data));
+        data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         DATA_PTR(self) = data;
         DATA_TYPE(self) = &cfunc_pointer_data_type;   
     }
@@ -141,7 +141,7 @@ cfunc_pointer_realloc(mrb_state *mrb, mrb_value self)
     
     mrb_int alloc_size;
     mrb_get_args(mrb, "i", &alloc_size);
-    set_cfunc_pointer_data(data, realloc(get_cfunc_pointer_data(data), alloc_size));
+    set_cfunc_pointer_data(data, mrb_realloc(mrb, get_cfunc_pointer_data(data), alloc_size));
     
     return self;
 }
@@ -152,7 +152,7 @@ cfunc_pointer_free(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
     
-    free(get_cfunc_pointer_data(data));
+    mrb_free(mrb, get_cfunc_pointer_data(data));
     data->autofree = false;
     set_cfunc_pointer_data(data, NULL);
     

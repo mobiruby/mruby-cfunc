@@ -28,7 +28,7 @@ cfunc_type_destructor(mrb_state *mrb, void *p)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)p;
     if(data->autofree) {
-        free(data->value._pointer);
+        mrb_free(mrb, data->value._pointer);
     }
     mrb_free(mrb, p);
 }
@@ -76,7 +76,7 @@ static mrb_value
 cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_type_data *data = malloc(sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     data->autofree = false;
 
     mrb_value pointer;
@@ -97,7 +97,7 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     struct cfunc_type_data *data;
     data = mrb_get_datatype(mrb, self, &cfunc_type_data);
     if (!data) {
-        data = malloc(sizeof(struct cfunc_type_data));
+        data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         data->value._uint64 = 0;
     }
     data->autofree = false;

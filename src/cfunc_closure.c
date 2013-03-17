@@ -29,10 +29,10 @@ cfunc_closure_destructor(mrb_state *mrb, void *p_)
     if (p->closure) {
         ffi_closure_free(p->closure);
     }
-    free(p->arg_types);
-    free(p->arg_ffi_types);
-    free(p->cif);
-    free(p);
+    mrb_free(mrb, p->arg_types);
+    mrb_free(mrb, p->arg_ffi_types);
+    mrb_free(mrb, p->cif);
+    mrb_free(mrb, p);
 }
 
 static void
@@ -57,7 +57,7 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     struct cfunc_closure_data *data;
     data = mrb_get_datatype(mrb, self, &cfunc_closure_data_type);
     if (!data) {
-        data = malloc(sizeof(struct cfunc_closure_data));
+        data = mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
     }
     data->refer = 0;
     data->autofree = 0;
@@ -75,8 +75,8 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     ffi_type *return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
     data->return_type = rettype_mrb;
 
-    data->arg_ffi_types = malloc(sizeof(ffi_type*) * data->argc);
-    data->arg_types = malloc(sizeof(mrb_value) * data->argc);
+    data->arg_ffi_types = mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
+    data->arg_types = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     int i;
     for (i = 0; i < data->argc; ++i) {
         data->arg_types[i] = mrb_ary_ref(mrb, args_mrb, i);
@@ -87,7 +87,7 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
 
     void *closure_pointer = NULL;
     data->closure = ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
-    data->cif = malloc(sizeof(ffi_cif));
+    data->cif = mrb_malloc(mrb, sizeof(ffi_cif));
     
     if (data->closure) {
         if (ffi_prep_cif(data->cif, FFI_DEFAULT_ABI, data->argc, return_ffi_type, data->arg_ffi_types) == FFI_OK) {
@@ -111,11 +111,11 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 
     int ai = mrb_gc_arena_save(data->mrb);
 
-    mrb_value *ary = malloc(sizeof(mrb_value) * data->argc);
+    mrb_value *ary = mrb_malloc(data->mrb, sizeof(mrb_value) * data->argc);
     int i;
     for (i = 0; i < data->argc; ++i) {
         // TODO: I felt too much consume memory
-        void *p = malloc(data->arg_ffi_types[i]->size);
+        void *p = mrb_malloc(data->mrb, data->arg_ffi_types[i]->size);
         memcpy(p, args[i], data->arg_ffi_types[i]->size);
         mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
         ary[i] = mrb_funcall(data->mrb, data->arg_types[i], "refer", 1, pointer);
@@ -123,7 +123,7 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 
     mrb_value block = mrb_iv_get(data->mrb, self, mrb_intern(data->mrb, "@block"));
     mrb_value result = mrb_funcall_argv(data->mrb, block, mrb_intern(data->mrb, "call"), data->argc, ary);
-    free(ary);
+    mrb_free(data->mrb, ary);
 
     mrb_value ret_pointer = cfunc_pointer_new_with_pointer(data->mrb, ret, false);
     mrb_funcall(data->mrb, data->return_type, "set", 2, ret_pointer, result);

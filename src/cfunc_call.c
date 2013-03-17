@@ -79,8 +79,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = malloc(sizeof(ffi_type*) * margc);
-    values = malloc(sizeof(void*) * margc);
+    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = mrb_malloc(mrb, sizeof(void*) * margc);
     mrb_sym sym_to_ffi_value = mrb_intern(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
@@ -108,10 +108,10 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {
-            result = malloc(result_type->size);
+            result = mrb_malloc(mrb, result_type->size);
         }
         else if(result_type->size) {
-            result = malloc(sizeof(long));
+            result = mrb_malloc(mrb, sizeof(long));
         }
         else {
             result = NULL;
@@ -129,8 +129,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     }
 
 cfunc_call_exit:
-    free(values);
-    free(args);
+    mrb_free(mrb, values);
+    mrb_free(mrb, args);
     return mresult;
 }
 
@@ -164,8 +164,8 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = malloc(sizeof(ffi_type*) * margc);
-    values = malloc(sizeof(void*) * margc);
+    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = mrb_malloc(mrb, sizeof(void*) * margc);
     mrb_sym sym_to_ffi_value = mrb_intern(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
@@ -193,10 +193,10 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {
-            result = malloc(result_type->size);
+            result = mrb_malloc(mrb, result_type->size);
         }
         else if(result_type->size) {
-            result = malloc(sizeof(long));
+            result = mrb_malloc(mrb, sizeof(long));
         }
         else {
             result = NULL;
@@ -214,8 +214,8 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
     }
 
 cfunc_call_exit:
-    free(values);
-    free(args);
+    mrb_free(mrb, values);
+    mrb_free(mrb, args);
     return mresult;
 }
 

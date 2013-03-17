@@ -63,7 +63,7 @@ struct queue_task {
 
 struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 {
-    struct task_arg *arg = malloc(sizeof(struct task_arg));
+    struct task_arg *arg = mrb_malloc(mrb, sizeof(struct task_arg));
 
     arg->tt = mrb_type(v);
     switch (mrb_type(v)) {
@@ -80,7 +80,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
     case MRB_TT_SYMBOL:
         {
             const char* name = mrb_sym2name_len(mrb, v.value.sym, &arg->value.string.len);
-            arg->value.string.ptr = malloc(arg->value.string.len+1);
+            arg->value.string.ptr = mrb_malloc(mrb, arg->value.string.len+1);
             memcpy(arg->value.string.ptr, name, arg->value.string.len+1);
         }
         break;
@@ -89,7 +89,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
         {
             struct RString *str = mrb_str_ptr(v);
             arg->value.string.len = str->len;
-            arg->value.string.ptr = malloc(arg->value.string.len+1);
+            arg->value.string.ptr = mrb_malloc(mrb, arg->value.string.len+1);
             memcpy(arg->value.string.ptr, str->ptr, arg->value.string.len+1);
         }
         break;
@@ -99,7 +99,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
             struct RArray *ary = mrb_ary_ptr(v);
 
             arg->value.array.len = ary->len;
-            arg->value.array.ptr = malloc(ary->len * sizeof(struct task_arg));
+            arg->value.array.ptr = mrb_malloc(mrb, ary->len * sizeof(struct task_arg));
 
             int i;
             for(i=0; i<ary->len; i++) {
@@ -162,7 +162,7 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
 }
 
 void
-free_task_arg(struct task_arg* arg)
+free_task_arg(mrb_state *mrb, struct task_arg* arg)
 {
     if(!arg) {
         return;
@@ -170,16 +170,16 @@ free_task_arg(struct task_arg* arg)
     switch (arg->tt) {
     case MRB_TT_SYMBOL:
     case MRB_TT_STRING:
-        free(arg->value.string.ptr);
+        mrb_free(mrb, arg->value.string.ptr);
         break;
 
     case MRB_TT_ARRAY:
         {
             int i;
             for(i=0; i<arg->value.array.len; i++) {
-                free_task_arg(arg->value.array.ptr[i]);
+                free_task_arg(mrb, arg->value.array.ptr[i]);
             }
-            free(arg->value.array.ptr);
+            mrb_free(mrb, arg->value.array.ptr);
         }
         break;
 
@@ -190,18 +190,18 @@ free_task_arg(struct task_arg* arg)
 
 
 void
-free_queue_task(struct queue_task* task)
+free_queue_task(mrb_state *mrb, struct queue_task* task)
 {
     task->refcount--;
     if(task->refcount < 1) {
         int i;
         for(i=0; i<task->args_len; ++i) {
-            free_task_arg(task->args[i]);
+            free_task_arg(mrb, task->args[i]);
         }
-        free(task->args);
-        free(task->result);
-        free(task->name);
-        free(task);
+        mrb_free(mrb, task->args);
+        mrb_free(mrb, task->result);
+        mrb_free(mrb, task->name);
+        mrb_free(mrb, task);
     }
 }
 
@@ -224,7 +224,7 @@ const struct mrb_data_type cfunc_rubyvm_data_type = {
 static void
 cfunc_rubyvm_task_data_destructor(mrb_state *mrb, void *p)
 {
-    free_queue_task((struct queue_task*)p);
+    free_queue_task(mrb, (struct queue_task*)p);
 };
 
 
@@ -264,7 +264,7 @@ cfunc_rubyvm_open(void *args)
         mrb_sym taskname = mrb_intern(mrb, task->name);
 
         int args_len = task->args_len;
-        mrb_value *args = malloc(sizeof(struct task_arg) * task->args_len);
+        mrb_value *args = mrb_malloc(mrb, sizeof(struct task_arg) * task->args_len);
         int i;
         for(i=0; i<task->args_len; ++i) {
             args[i] = task_arg_to_mrb_value(data->state, task->args[i]);
@@ -277,8 +277,8 @@ cfunc_rubyvm_open(void *args)
         task->status = queue_task_finished;
         pthread_cond_signal(&task->sync_cond);
 
-        free(args);
-        free_queue_task(task);
+        mrb_free(mrb, args);
+        free_queue_task(mrb, task);
     }
 
     return NULL;
@@ -294,7 +294,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
     int args_len;
     mrb_get_args(mrb, "o*", &name_obj, &args, &args_len);
 
-    struct queue_task *task = malloc(sizeof(struct queue_task));
+    struct queue_task *task = mrb_malloc(mrb, sizeof(struct queue_task));
     task->refcount = 2;
     task->result = NULL;
     task->status = queue_task_queued;
@@ -304,11 +304,11 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 
     const char* name = mrb_string_value_ptr(mrb, name_obj);
     int name_len = strlen(name);
-    task->name = malloc(name_len+1);
+    task->name = mrb_malloc(mrb, name_len+1);
     strncpy(task->name, name, name_len+1);
 
     task->args_len = args_len;
-    task->args = malloc(sizeof(struct task_arg) * task->args_len);
+    task->args = mrb_malloc(mrb, sizeof(struct task_arg) * task->args_len);
     int i;
     for(i=0; i<args_len; ++i) {
         task->args[i] = mrb_value_to_task_arg(mrb, args[i]);
@@ -359,7 +359,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 {
     // init bindle data with RubyVM object
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_rubyvm_data *data = malloc(sizeof(struct cfunc_rubyvm_data));
+    struct cfunc_rubyvm_data *data = mrb_malloc(mrb, sizeof(struct cfunc_rubyvm_data));
     mrb_value self = mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_rubyvm_data_type, data));
 
     // load script
