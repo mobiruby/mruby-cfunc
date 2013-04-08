@@ -3,6 +3,11 @@
 Interface to C functions on mruby. it's based on [libffi](http://sourceware.org/libffi/).
 
 
+## Build status
+
+[![Build Status](https://secure.travis-ci.org/mobiruby/mruby-cfunc.png)](http://travis-ci.org/mobiruby/mruby-cfunc)
+
+
 ## Install
 
 It's mrbgems.
