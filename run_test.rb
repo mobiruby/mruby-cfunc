@@ -11,6 +11,7 @@ end
 
 MRuby::Build.new do |conf|
   toolchain :gcc
+  conf.gem "#{root}/mrbgems/mruby-print"
   conf.gem File.expand_path(File.dirname(__FILE__)) do |g|
     # g.use_pkg_config
     g.download_libffi
