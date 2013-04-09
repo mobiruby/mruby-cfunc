@@ -65,6 +65,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   file rubyvm1_o => rubyvm1_c
   file rubyvm1_c => rubyvm1_rbx do |t|
     open(rubyvm1_c, 'w') do |f|
+      f.puts '#include <stdint.h>'
       build.mrbc.run f, rubyvm1_rbx, 'mruby_data__rubyvm1'
     end
   end
