@@ -18,13 +18,28 @@
 #include "mruby/dump.h"
 
 #include <setjmp.h>
-
+#include <errno.h>
 
 mrb_value
 cfunc_mrb_state(mrb_state *mrb, mrb_value klass)
 {
     return cfunc_pointer_new_with_pointer(mrb, mrb, false);
 }
+
+mrb_value
+cfunc_errno(mrb_state *mrb, mrb_value klass)
+{
+    return mrb_fixnum_value(errno);
+}
+
+mrb_value
+cfunc_strerror(mrb_state *mrb, mrb_value klass)
+{
+    mrb_value msg;
+    msg = mrb_str_new_cstr(mrb, strerror(errno));
+    return msg;
+}
+
 
 void
 mrb_mruby_cfunc_gem_init(mrb_state* mrb)
@@ -44,6 +59,8 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 	init_cfunc_platform(mrb, ns); mrb_gc_arena_restore(mrb, ai);
 
     mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "errno", cfunc_errno, ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "strerror", cfunc_strerror, ARGS_NONE());
 }
 
 void
