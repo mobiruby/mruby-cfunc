@@ -143,19 +143,6 @@ module CFunc
     end
 end
 
-module Enumerable
-    def each_slice(n, &block)
-        ary = []
-        each_with_index do |val, i|
-            ary << val
-            if i % n == n - 1
-                block.call(ary)
-                ary = []
-            end
-        end
-    end
-end
-
 class CFunc::Struct
     class << self
         attr_accessor :elements, :size, :align
