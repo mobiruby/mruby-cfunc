@@ -49,4 +49,5 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 void
 mrb_mruby_cfunc_gem_final(mrb_state* mrb)
 {
+    mrb_free(mrb, cfunc_state(mrb, NULL));
 }

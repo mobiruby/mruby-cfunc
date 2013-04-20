@@ -79,9 +79,11 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 
     case MRB_TT_SYMBOL:
         {
-            const char* name = mrb_sym2name_len(mrb, v.value.sym, &arg->value.string.len);
-            arg->value.string.ptr = mrb_malloc(mrb, arg->value.string.len+1);
-            memcpy(arg->value.string.ptr, name, arg->value.string.len+1);
+            size_t len;
+            const char* name = mrb_sym2name_len(mrb, v.value.sym, &len);
+            arg->value.string.len = len;
+            arg->value.string.ptr = mrb_malloc(mrb, len + 1);
+            memcpy(arg->value.string.ptr, name, len + 1);
         }
         break;
 
@@ -109,6 +111,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
         break;
 
     default:
+        mrb_free(mrb, arg);
         mrb_raise(mrb, E_TYPE_ERROR, "cannot pass to other RubyVM");
         break;
     }
