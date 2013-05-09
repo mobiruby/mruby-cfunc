@@ -18,6 +18,10 @@ When you use in your project, please add below to your ``build_config.rb``.
   conf.gem 'path/to/here' do |g|
     # g.use_pkg_config # use pkg-config for libffi linking
     # g.download_libffi # download and link latest libffi
+    
+    # if your libffi is installed in a non standard path
+    # g.cc.include_paths << '[...]/include'
+    # g.linker.library_paths << '[...]/lib'
   end
 ```
 
