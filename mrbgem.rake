@@ -5,6 +5,12 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.authors = 'MobiRuby developers'
   
   spec.rbfiles = Dir[File.expand_path('../mrblib/**/*.rb', __FILE__)]
+  spec.rbfiles = [
+    'cfunc_rb',
+    'ffi/argument',
+    'ffi/function',
+    'ffi/ffi'
+  ].map{|path| File.expand_path("../mrblib/#{path}.rb", __FILE__) }
 
   def spec.use_pkg_config(pkg_config='pkg-config')
     self.linker.flags << `"#{pkg_config}" libffi --libs-only-L --libs-only-other`.chomp
