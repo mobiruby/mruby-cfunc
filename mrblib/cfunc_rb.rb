@@ -188,6 +188,11 @@ class CFunc::Struct
         self.new(pointer)
     end
     
+    def element(fieldname)
+        field = lookup(fieldname)
+        field[0].refer(@pointer.offset(field[2]))
+    end
+    
     def [](fieldname)
         field = lookup(fieldname)
         el = field[0].refer(@pointer.offset(field[2]))
