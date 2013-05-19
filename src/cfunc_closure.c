@@ -160,11 +160,11 @@ cfunc_closure_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data 
 }
 
 
-static void
-cfunc_closure_ffi_data_destructor(mrb_state *mrb, void *p_)
-{
-    // ToDo:
-};
+// static void
+// cfunc_closure_ffi_data_destructor(mrb_state *mrb, void *p_)
+// {
+//     // ToDo:
+// };
 
 
 static struct mrb_ffi_type closure_mrb_ffi_type = {
