@@ -64,11 +64,10 @@ mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
     switch(mrb_type(val)) {
         case MRB_TT_TRUE:
         case MRB_TT_FALSE:
-            {
-                return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->sint32_class);
-            }
+            return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->sint32_class);
+        default:
+            return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
     }
-    return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
 }
 
 
@@ -204,10 +203,10 @@ cfunc_type_addr(mrb_state *mrb, mrb_value self)
 
 
 static
-mrb_value int64_to_mrb(int64_t val)
+mrb_value int64_to_mrb(mrb_state *mrb, int64_t val)
 {
     if(val < MRB_INT_MIN || val > MRB_INT_MAX) {
-        return mrb_float_value(val);
+        return mrb_float_value(mrb, val);
     }
     else {
         return mrb_fixnum_value(val);
@@ -243,6 +242,8 @@ int64_t mrb_to_int64(mrb_state *mrb, mrb_value val)
 
             case MRB_TT_TRUE:
                 return 1;
+            default:
+                return 0;  // can't reach here
             }
         }
 
@@ -283,6 +284,9 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
 
             case MRB_TT_TRUE:
                 return 1.0;
+
+            default:
+                return 0.0; // can't reach here
             }
         }
         
@@ -306,7 +310,7 @@ cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
     if(uint64 > UINT32_MAX) {
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
-    return int64_to_mrb(uint64);
+    return int64_to_mrb(mrb, uint64);
 }
 
 
@@ -322,7 +326,7 @@ cfunc_uint64_get_value(mrb_state *mrb, mrb_value self)
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
 
-    return int64_to_mrb(uint64);
+    return int64_to_mrb(mrb, uint64);
 }
 
 
@@ -330,7 +334,7 @@ mrb_value
 cfunc_uint64_get_low(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    return int64_to_mrb(data->value._uint64 & 0xffffffff);
+    return int64_to_mrb(mrb, data->value._uint64 & 0xffffffff);
 }
 
 
@@ -350,7 +354,7 @@ mrb_value
 cfunc_uint64_get_high(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    return int64_to_mrb(data->value._uint64 >> 32);
+    return int64_to_mrb(mrb, data->value._uint64 >> 32);
 }
 
 
@@ -391,7 +395,7 @@ cfunc_sint64_class_get(mrb_state *mrb, mrb_value klass)
     if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
         mrb_raise(mrb, E_TYPE_ERROR, "out of range. Use low, high");
     }
-    return int64_to_mrb(sint64);
+    return int64_to_mrb(mrb, sint64);
 }
 
 
@@ -406,7 +410,7 @@ cfunc_sint64_get_value(mrb_state *mrb, mrb_value self)
     if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
         mrb_raise(mrb, E_TYPE_ERROR, "out of range. Use low, high");
     }
-    return int64_to_mrb(sint64);
+    return int64_to_mrb(mrb, sint64);
 }
 
 
@@ -483,7 +487,7 @@ cfunc_type_ffi_void_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 
 
 // macros
-#define define_cfunc_type(name, ffi_type_ptr, ctype, c_to_mrb, mrb_to_c) \
+#define define_cfunc_type_(name, ffi_type_ptr, ctype, c_to_mrb, mrb_to_c) \
 \
 static mrb_value \
 cfunc_type_ffi_##name##_c_to_mrb(mrb_state *mrb, void *p) \
@@ -505,6 +509,43 @@ cfunc_type_ffi_##name##_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data
     } \
     else { \
         return c_to_mrb(data->value._##name); \
+    } \
+} \
+\
+static void \
+cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data *data) \
+{ \
+    if(data->refer) { \
+        *(ctype*)data->value._pointer = mrb_to_c(mrb, val); \
+    } \
+    else { \
+        data->value._##name = mrb_to_c(mrb, val); \
+    } \
+}
+
+// macros
+#define define_cfunc_type(name, ffi_type_ptr, ctype, c_to_mrb, mrb_to_c) \
+\
+static mrb_value \
+cfunc_type_ffi_##name##_c_to_mrb(mrb_state *mrb, void *p) \
+{ \
+    return c_to_mrb(mrb, *(ctype*)p); \
+} \
+\
+static void \
+cfunc_type_ffi_##name##_mrb_to_c(mrb_state *mrb, mrb_value val, void *p) \
+{ \
+    *(ctype*)p = mrb_to_c(mrb, val); \
+} \
+\
+static mrb_value \
+cfunc_type_ffi_##name##_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data) \
+{ \
+    if(data->refer) { \
+        return c_to_mrb(mrb, *(ctype*)data->value._pointer); \
+    } \
+    else { \
+        return c_to_mrb(mrb, data->value._##name); \
     } \
 } \
 \
