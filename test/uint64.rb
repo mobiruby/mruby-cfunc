@@ -24,4 +24,21 @@ mobiruby_test "CFunc::UInt64" do
 
   uint = CFunc::UInt64.new(CFunc::SInt16.new(16))
   assert_equal 16, uint.value
+  
+  
+  # divide test
+  uint.low = 0xFFFFFFFF
+  uint.high = 0xFF
+  
+  err = nil
+  begin
+    uint.value
+  rescue => ex
+    err = ex
+  end
+  
+  assert_equal 'TypeError', err.class.to_s
+  assert_equal "too big. Use low, high", err.message
+  
+  assert_equal uint.divide(1000), 1099511627
 end

@@ -315,6 +315,30 @@ cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
 
 
 mrb_value
+cfunc_uint64_divide(mrb_state *mrb, mrb_value self)
+{
+    mrb_value mdivider;
+    mrb_int divider;
+    uint64_t result;
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    uint64_t uint64 = data->value._uint64;
+    if(data->refer) {
+        uint64 = *(uint64_t*)data->value._pointer;
+    }
+    
+    mrb_get_args(mrb, "o", &mdivider);
+    divider = mrb_fixnum(mdivider);    
+    result = uint64 / divider;
+    
+    if(result > UINT32_MAX) {
+        mrb_raise(mrb, E_TYPE_ERROR, "result too big.");
+    }
+    
+    return int64_to_mrb(mrb, uint64 / divider );
+}
+
+
+mrb_value
 cfunc_uint64_get_value(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
@@ -492,7 +516,7 @@ cfunc_type_ffi_void_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 static mrb_value \
 cfunc_type_ffi_##name##_c_to_mrb(mrb_state *mrb, void *p) \
 { \
-    return c_to_mrb(*(ctype*)p); \
+    return c_to_mrb(mrb, *(ctype*)p); \
 } \
 \
 static void \
@@ -505,10 +529,10 @@ static mrb_value \
 cfunc_type_ffi_##name##_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data) \
 { \
     if(data->refer) { \
-        return c_to_mrb(*(ctype*)data->value._pointer); \
+        return c_to_mrb(mrb, *(ctype*)data->value._pointer); \
     } \
     else { \
-        return c_to_mrb(data->value._##name); \
+        return c_to_mrb(mrb, data->value._##name); \
     } \
 } \
 \
@@ -668,6 +692,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, uint64_class, "high", cfunc_uint64_get_high, ARGS_NONE());
     mrb_define_method(mrb, uint64_class, "high=", cfunc_uint64_set_high, ARGS_REQ(1));
     mrb_define_method(mrb, uint64_class, "to_s", cfunc_uint64_to_s, ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "divide", cfunc_uint64_divide, ARGS_REQ(1));
     DONE;
     
     // sint64 specific
