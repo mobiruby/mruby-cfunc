@@ -94,6 +94,11 @@ class CFunc::Pointer
     def [](index)
         self.class.type.refer(self.offset(index * self.class.type.size))
     end
+
+    def []=(index, val)
+        self.class.type.refer(self.offset(index * self.class.type.size)).value = val
+    end
+
 end
 
 class String
@@ -158,11 +163,27 @@ class CFunc::Struct
             
             max_align = 0
             args.each_slice(2) do |el|
-                offset = calc_align(offset, el[0].align)
-                types << el[0]
-                @elements << [el[0], el[1].to_s, offset]
-                offset += el[0].size
-                max_align = el[0].align if el[0].align > max_align
+                if el[0].is_a?(CFunc::CArray)
+                    type = el[0].class.type
+                    @elements << [CFunc::Pointer(type), el[1].to_s, offset, :new]
+                    align = type.align
+                    size = type.size
+                    el[0].size.times do |i|
+                        offset = calc_align(offset, align)
+                        types << type
+                        @elements << [type, "#{el[1]}-#{i}", offset]
+                        offset += size
+                    end
+                    max_align = align if align > max_align
+                else
+                    align = el[0].align
+                    size = el[0].size
+                    offset = calc_align(offset, align)
+                    types << el[0]
+                    @elements << [el[0], el[1].to_s, offset]
+                    offset += size
+                    max_align = align if align > max_align
+                end
             end
             @align = @size = offset + ((-offset) & (max_align - 1))
             klass.define_struct(types)
@@ -190,8 +211,12 @@ class CFunc::Struct
     
     def [](fieldname)
         field = lookup(fieldname)
-        el = field[0].refer(@pointer.offset(field[2]))
-        el.respond_to?(:value) ? el.value : el
+        if field[3] == :new
+            el = field[0].new(@pointer.offset(field[2]))
+        else
+            el = field[0].refer(@pointer.offset(field[2]))
+            el.respond_to?(:value) ? el.value : el
+        end
     end
 
     def []=(fieldname, val)
@@ -239,6 +264,7 @@ class NilClass
     end
 end
 
+
 $mruby_cfunc_true_pointer = CFunc::Int(1).addr
 class TrueClass
     def addr
@@ -249,9 +275,11 @@ class TrueClass
         self.addr
     end
 end
+
 TrueClass.instance_eval do
     @ffi_type = CFunc::Int.ffi_type
 end
+
 
 $mruby_cfunc_false_pointer = CFunc::Int(0).addr
 class FalseClass
@@ -263,6 +291,7 @@ class FalseClass
         self.addr
     end
 end
+
 FalseClass.instance_eval do
     @ffi_type = CFunc::Int.ffi_type
 end
