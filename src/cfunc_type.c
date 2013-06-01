@@ -204,10 +204,10 @@ cfunc_type_addr(mrb_state *mrb, mrb_value self)
 
 
 static
-mrb_value int64_to_mrb(int64_t val)
+mrb_value int64_to_mrb(mrb_state *mrb, int64_t val)
 {
     if(val < MRB_INT_MIN || val > MRB_INT_MAX) {
-        return mrb_float_value(val);
+        return mrb_float_value(mrb, val);
     }
     else {
         return mrb_fixnum_value(val);
@@ -306,7 +306,7 @@ cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
     if(uint64 > UINT32_MAX) {
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
-    return int64_to_mrb(uint64);
+    return int64_to_mrb(mrb, uint64);
 }
 
 
@@ -330,7 +330,7 @@ cfunc_uint64_divide(mrb_state *mrb, mrb_value self)
         mrb_raise(mrb, E_TYPE_ERROR, "result too big.");
     }
     
-    return int64_to_mrb( uint64 / divider );
+    return int64_to_mrb(mrb, uint64 / divider );
 }
 
 
@@ -346,7 +346,7 @@ cfunc_uint64_get_value(mrb_state *mrb, mrb_value self)
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
 
-    return int64_to_mrb(uint64);
+    return int64_to_mrb(mrb, uint64);
 }
 
 
@@ -354,7 +354,7 @@ mrb_value
 cfunc_uint64_get_low(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    return int64_to_mrb(data->value._uint64 & 0xffffffff);
+    return int64_to_mrb(mrb, data->value._uint64 & 0xffffffff);
 }
 
 
@@ -374,7 +374,7 @@ mrb_value
 cfunc_uint64_get_high(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    return int64_to_mrb(data->value._uint64 >> 32);
+    return int64_to_mrb(mrb, data->value._uint64 >> 32);
 }
 
 
@@ -415,7 +415,7 @@ cfunc_sint64_class_get(mrb_state *mrb, mrb_value klass)
     if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
         mrb_raise(mrb, E_TYPE_ERROR, "out of range. Use low, high");
     }
-    return int64_to_mrb(sint64);
+    return int64_to_mrb(mrb, sint64);
 }
 
 
@@ -430,7 +430,7 @@ cfunc_sint64_get_value(mrb_state *mrb, mrb_value self)
     if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
         mrb_raise(mrb, E_TYPE_ERROR, "out of range. Use low, high");
     }
-    return int64_to_mrb(sint64);
+    return int64_to_mrb(mrb, sint64);
 }
 
 
@@ -512,7 +512,7 @@ cfunc_type_ffi_void_mrb_to_c(mrb_state *mrb, mrb_value val, void *p)
 static mrb_value \
 cfunc_type_ffi_##name##_c_to_mrb(mrb_state *mrb, void *p) \
 { \
-    return c_to_mrb(*(ctype*)p); \
+    return c_to_mrb(mrb, *(ctype*)p); \
 } \
 \
 static void \
@@ -525,10 +525,10 @@ static mrb_value \
 cfunc_type_ffi_##name##_data_to_mrb(mrb_state *mrb, struct cfunc_type_data *data) \
 { \
     if(data->refer) { \
-        return c_to_mrb(*(ctype*)data->value._pointer); \
+        return c_to_mrb(mrb, *(ctype*)data->value._pointer); \
     } \
     else { \
-        return c_to_mrb(data->value._##name); \
+        return c_to_mrb(mrb, data->value._##name); \
     } \
 } \
 \

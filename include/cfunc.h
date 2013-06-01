@@ -68,7 +68,7 @@ cfunc_state(mrb_state *mrb, struct RClass* obj)
 static inline void
 set_cfunc_state(mrb_state *mrb, struct RClass* klass, struct cfunc_state *state)
 {
-    mrb_value mstate = mrb_voidp_value(state);
+    mrb_value mstate = mrb_voidp_value(mrb, state);
     mrb_mod_cv_set(mrb, klass, mrb_intern(mrb, "cfunc_state"), mstate);
 }
 
