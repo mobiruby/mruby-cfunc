@@ -372,7 +372,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
     mrb_str_concat(mrb, str, mrb_str_new(mrb, RSTRING_PTR(filename), RSTRING_LEN(filename)));
 
     void *dlh = dlopen(NULL, RTLD_LAZY);
-    data->mrb_data = (const char *)dlsym(dlh, RSTRING_PTR(str));
+    data->mrb_data = (const uint8_t *)dlsym(dlh, RSTRING_PTR(str));
 
     if (!data->mrb_data) {
         dlclose(dlh);

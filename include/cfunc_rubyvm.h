@@ -15,7 +15,7 @@
 struct cfunc_rubyvm_data {
     mrb_state *state;
     
-    const char* mrb_data;
+    const uint8_t* mrb_data;
 
     pthread_t thread;
     pthread_mutex_t queue_mutex;
