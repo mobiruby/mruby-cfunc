@@ -112,8 +112,8 @@ mrb_value
 cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data;
-    data = mrb_get_datatype(mrb, self, &cfunc_pointer_data_type);
-    if (!data) {
+    data = mrb_data_check_get_ptr(mrb, self, &cfunc_pointer_data_type);
+    if(!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         DATA_PTR(self) = data;
         DATA_TYPE(self) = &cfunc_pointer_data_type;   

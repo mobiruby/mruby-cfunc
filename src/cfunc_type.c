@@ -94,7 +94,7 @@ static mrb_value
 cfunc_type_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data;
-    data = mrb_get_datatype(mrb, self, &cfunc_type_data);
+    data = mrb_data_check_get_ptr(mrb, self, &cfunc_type_data);
     if (!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         data->value._uint64 = 0;

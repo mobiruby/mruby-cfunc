@@ -55,7 +55,7 @@ mrb_value
 cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_closure_data *data;
-    data = mrb_get_datatype(mrb, self, &cfunc_closure_data_type);
+    data = mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
     if (!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
     }

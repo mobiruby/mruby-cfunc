@@ -11,7 +11,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     end
   end
 
-  def spec.download_libffi(libffi_version = '3.0.11', tar = 'tar')
+  def spec.download_libffi(libffi_version = '3.0.13', tar = 'tar')
     libffi_url = "ftp://sourceware.org/pub/libffi/libffi-#{libffi_version}.tar.gz"
     libffi_build_root = "build/libffi/#{build.name}"
     libffi_dir = "#{libffi_build_root}/libffi-#{libffi_version}"

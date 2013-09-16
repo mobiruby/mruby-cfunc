@@ -291,7 +291,7 @@ cfunc_rubyvm_open(void *args)
 mrb_value
 cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_rubyvm_data *data = mrb_get_datatype(mrb, self, &cfunc_rubyvm_data_type);
+    struct cfunc_rubyvm_data *data = mrb_data_check_get_ptr(mrb, self, &cfunc_rubyvm_data_type);
 
     mrb_value name_obj, *args;
     int args_len;
