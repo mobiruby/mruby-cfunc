@@ -247,8 +247,7 @@ cfunc_rubyvm_open(void *args)
     init_cfunc_module(mrb);
 #endif
 
-    mrb_irep* irep;
-    irep = mrb_add_irep(mrb);
+    mrb_irep* irep = mrb_read_irep(mrb, data->mrb_data);
 
     mrb_run(mrb, mrb_proc_new(mrb, irep), mrb_top_self(mrb));
 
