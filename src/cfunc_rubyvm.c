@@ -247,9 +247,9 @@ cfunc_rubyvm_open(void *args)
     init_cfunc_module(mrb);
 #endif
 
-    int n = mrb_read_irep(mrb, data->mrb_data);
+    mrb_irep* irep = mrb_read_irep(mrb, data->mrb_data);
 
-    mrb_run(mrb, mrb_proc_new(mrb, mrb->irep[n]), mrb_top_self(mrb));
+    mrb_run(mrb, mrb_proc_new(mrb, irep), mrb_top_self(mrb));
 
     if (mrb->exc) {
         return NULL;
