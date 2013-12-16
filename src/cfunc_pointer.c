@@ -103,7 +103,7 @@ cfunc_pointer_refer(mrb_state *mrb, mrb_value klass)
     data->value._pointer = cfunc_pointer_ptr(pointer);
 
     struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_pointer_data_type, data);
-    mrb_obj_iv_set(mrb, obj, mrb_intern(mrb, "parent_pointer"), pointer); // keep for GC
+    mrb_obj_iv_set(mrb, obj, mrb_intern_cstr(mrb, "parent_pointer"), pointer); // keep for GC
     return mrb_obj_value(obj);
 }
 
@@ -225,7 +225,7 @@ cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
     }
     else {
         mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, (void*)((uint8_t*)get_cfunc_pointer_data(data) + offset), false);
-        mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+        mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
         return ptr;
     }
 }
@@ -244,7 +244,7 @@ cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
     }
 
     mrb_value obj = cfunc_pointer_new_with_pointer(mrb, ptr, false);
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(obj), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(obj), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
     return obj;
 }
 
@@ -253,7 +253,7 @@ static mrb_value
 cfunc_string_addr(mrb_state *mrb, mrb_value self)
 {
     mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, &RSTRING_PTR(self), false);
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
     return ptr;
 }
 
@@ -320,7 +320,7 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
 
     struct RClass *pointer_class = mrb_define_class_under(mrb, module, "Pointer", state->type_class);
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_pointer_ffi_data_type, &pointer_mrb_ffi_type));
-    mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
     state->pointer_class = pointer_class;
 
     mrb_define_class_method(mrb, pointer_class, "refer", cfunc_pointer_refer, ARGS_REQ(1));
@@ -338,5 +338,5 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
     
     // add method to system classes
     mrb_define_method(mrb, mrb->string_class, "addr", cfunc_string_addr, ARGS_NONE());
-    mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
 }

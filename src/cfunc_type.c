@@ -44,7 +44,7 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
 {
     struct RClass *cls_ = cls;
     while(cls) {
-        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern(mrb, "@ffi_type"));
+        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern_cstr(mrb, "@ffi_type"));
         if(mrb_test(ffi_type)) {
             return (struct mrb_ffi_type*)DATA_PTR(ffi_type);
         }
@@ -85,7 +85,7 @@ cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
     data->value._pointer = cfunc_pointer_ptr(pointer);
 
     struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_type_data, data);
-    mrb_obj_iv_set(mrb, obj, mrb_intern(mrb, "parent_pointer"), pointer); // keep for GC
+    mrb_obj_iv_set(mrb, obj, mrb_intern_cstr(mrb, "parent_pointer"), pointer); // keep for GC
     return mrb_obj_value(obj);
 }
 
@@ -196,7 +196,7 @@ cfunc_type_addr(mrb_state *mrb, mrb_value self)
         ptr = cfunc_pointer_new_with_pointer(mrb, &data->value._pointer, false);
     }
 
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
 
     return ptr;
 }
@@ -462,7 +462,7 @@ cfunc_nil_addr(mrb_state *mrb, mrb_value self)
         ptr = cfunc_pointer_new_with_pointer(mrb, &data->value._pointer, false);
     }
 
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
 
     return ptr;
 }
@@ -661,22 +661,22 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     for(i = 0; i < map_size; ++i) {
         struct RClass *new_class = mrb_define_class_under(mrb, module, types[i].name, type_class);
         mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_class_ffi_data_type, &types[i]));
-        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern(mrb, "@ffi_type"), ffi_type);
+        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
     }
     DONE;
     
     mrb_value mod = mrb_obj_value(module);
-    state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Void")));
-    state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt8")));
-    state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt8")));
-    state->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt16")));
-    state->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt16")));
-    state->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt32")));
-    state->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt32")));
-    state->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "UInt64")));
-    state->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "SInt64")));
-    state->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Float")));
-    state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern(mrb, "Double")));
+    state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Void")));
+    state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt8")));
+    state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt8")));
+    state->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt16")));
+    state->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt16")));
+    state->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt32")));
+    state->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt32")));
+    state->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt64")));
+    state->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt64")));
+    state->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Float")));
+    state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Double")));
     DONE;
 
     mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());
