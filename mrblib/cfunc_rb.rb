@@ -1,3 +1,19 @@
+# @abstract
+# @!method size()
+# @return [Integer]
+# @!scope class
+# @!method align()
+# @!scope class
+# @!method get(ptr)
+# @return [::Object] the value in ruby
+# @!scope class
+# @!method set(ptr,val)
+# @!scope class
+# @!method refer(ptr)
+# @!scope class
+# @!method addr()
+# @!method set(val)
+# @!method get()
 class CFunc::Type
     def to_ffi_value(ffi_type)
         self.addr
@@ -8,6 +24,72 @@ class CFunc::Type
     end
 end
 
+# @example
+#    #
+#    # Calling functions
+#    #
+#
+#    # call libc's 'puts'
+#    #   note: the first argument, the result type, could be 'nil'
+#    CFunc::define_function(CFunc::Void, 'puts', CFunc::Pointer);
+#    CFunc[:puts].call('foo')
+#
+#    # Use a function from a library
+#    # Say we have a library (./mylib.so) and it has a function 'my_add' like so ...
+#    =begin
+#      int
+#      my_add(int a, int b)
+#      {
+#        return(a+b);
+#      }
+#    =end
+#
+#    # Dynamic Loading (specified by path unless findable by dlopen())
+#    # Get a Dynamic Loaded library Handle
+#    dlh     = CFunc::call(CFunc::Pointer, "dlopen", "./mylib.so", CFunc::Int.new(1))
+#
+#    # Get function pointers from the handle
+#    fun_ptr = CFunc::call(CFunc::Pointer, :dlsym, dlh, "my_add")
+#    f       = CFunc::FunctionPointer.new(fun_ptr)
+#
+#    f.result_type    = CFunc::Int
+#    f.arguments_type = [CFunc::Int, CFunc::Int]
+#
+#    # Call a function
+#    f.call(1,3).value #=> 4
+#
+#    #
+#    # Arrays
+#    #
+#
+#    # This allocates the space for four elements of SInt32
+#    ary = CFunc::CArray(CFunc::Int)[4]
+#    # set the values
+#    ary[0].value = 1
+#    ary[1].value = 2
+#    ary[2].value = 3
+#    ary[3].value = 4
+#    # get a value
+#    ary[1].value #=> 2
+#    
+#    #
+#    # Type Casting
+#    # Descendants of CFunc::Type have a 'refer' method that will wrap a pointer as that type
+#    #
+#
+#    # This will wrap a pointer as an CFunc::Int
+#    int = CFunc::Int.refer(ptr)
+#    # This will wrap a pointer as an CFunc::CArray of type CFunc::Int
+#    ary = CFunc::CArray(CFunc::Int).refer(ptr)
+#
+#    #
+#    # Memory Management
+#    # CFunc::Pointer#autofree
+#    #
+#
+#    # This pointer is free'd once GC-ed
+#    ptr = CFunc::Pointer.malloc(8)
+#    ptr.autofree
 module CFunc
     # 
     # @param [Integer] val the number to represent
@@ -65,6 +147,11 @@ module CFunc
     def self.Double(val); Double.new(val) end
 
     class Type
+        # Shorthand to create an CFunc::CArray of type `self` with +size+ elements
+        # @note The returned value's class is a subclass of CFunc::CArray
+        #
+        # @param [Integer] size the number of elements
+        # @return [CFunc::CArray]  
         def self.[](size)
             CFunc::CArray(self).new(size)
         end
@@ -87,13 +174,12 @@ end
 
 
 module CFunc
-    # A pointer to a function
     class FunctionPointer < Pointer
         attr_accessor :result_type, :arguments_type
 
         #
         # @param [void] args swarm of arguments (if any) to pass to the function
-        # @return [::Object] the result of calling the function
+        # @return [CFunc::Type] the result of calling the function
         def call(*args)
             @result_type ||= CFunc::Void
             @arguments_type.each_with_index do |arg_type, idx|
@@ -106,10 +192,10 @@ module CFunc
     end
 
     # Stores a function
-    # @see(CFunc::[])
+    # @see []
     #
     # @param [CFunc::Type] result_type the type of the result of calling the function
-    # @param [String] funcname the name of the function (note: the name must be of a symbol in `@dlh` or from a library that `@dlh` is linked against)
+    # @param [String] funcname the name of the function (note: only symbols from libc)
     # @param [void] args swarm of CFunc::Type's (if any) of the argument types.
     def self.define_function(result_type, funcname, *args)
         @dlh ||= CFunc::call(CFunc::Pointer, :dlopen, nil, nil)
@@ -194,6 +280,16 @@ module CFunc
 end
 
 # Wraps a pointer of an array
+# @example
+#    # This allocates the space for four elements of SInt32
+#    ary = CFunc::CArray(CFunc::Int)[4]
+#    # set the values
+#    ary[0].value = 1
+#    ary[1].value = 2
+#    ary[2].value = 3
+#    ary[3].value = 4
+#    # get a value
+#    ary[1].value #=> 2
 class CFunc::CArray < CFunc::Pointer
     attr_accessor :size
 
@@ -218,6 +314,39 @@ module CFunc
         klass
     end
 
+    # Represents int8_t
+    class SInt8 < Type; end
+    # Represents int16_t    
+    class SInt16 < Type; end
+    # Represents int32_t    
+    class SInt32 < Type; end
+    # Represents int64_t    
+    class SInt64 < Type; end
+    
+    # Represents uint8_t      
+    class UInt8 < Type; end
+    # Represents uint16_t      
+    class UInt16 < Type; end
+    # Represents uint32_t      
+    class UInt32 < Type; end
+    
+    # Represents uint64_t      
+    class UInt64 < Type;
+      # @!method divide(q)
+      # @!method low()
+      # @!method low=(val)
+      # @!method high()
+      # @!method high=(val)
+    end  
+    
+    # Represents float      
+    class Float < Type; end
+    # represents double
+    class Double < Type; end
+    
+    # A Void type
+    class Void < Type;end  
+            
     # Convienience, is CFunc::SInt32
     class Int < SInt32
     end
@@ -290,8 +419,8 @@ class CFunc::Struct
     end
 
     # When passed a CFunc::Pointer we will wrap that pointer
-    # When passed a Hash we will create the pointer we wrap, its size will be the size of the struct multiplied by the value of the `:size` member of the hash
-    # When passed nil or when no arguments are passed we create the pointer we wrap
+    # When passed a Hash we will create the pointer we wrap, its size will be the size of the struct multiplied by the value of the `:size` member of the hash and set it to be autofree'd
+    # When passed nil or when no arguments are passed we create the pointer we wrap and set it to be autofree'd
     #
     # @raise [RuntimeError] when passed something we cant handle
     #
