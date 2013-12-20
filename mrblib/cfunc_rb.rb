@@ -1,20 +1,17 @@
-# @abstract
-# @!method size()
-# @return [Integer]
-# @!scope class
-# @!method align()
-# @!scope class
-# @!method get(ptr)
-# @return [::Object] the value in ruby
-# @!scope class
-# @!method set(ptr,val)
-# @!scope class
-# @!method refer(ptr)
-# @!scope class
-# @!method addr()
-# @!method set(val)
-# @!method get()
+# @abstract 
 class CFunc::Type
+    # @!scope class
+    # @!method size()
+    # @!method align()
+    # @!method get(ptr)
+    # @!method set(ptr,val)
+    # @!method refer(ptr) 
+
+    # @!scope instance
+    # @!method addr()
+    # @!method set(val)
+    # @!method get()
+    
     def to_ffi_value(ffi_type)
         self.addr
     end
