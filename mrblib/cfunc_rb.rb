@@ -252,7 +252,7 @@ module CFunc
 end
 
 # A pointer
-class CFunc::Pointer
+class CFunc::Pointer < CFunc::Type
     class << self
         def type
             @type || CFunc::Void
