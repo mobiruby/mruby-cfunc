@@ -35,52 +35,89 @@ end
 #    CFunc[:puts].call('foo')
 #
 #    # Use a function from a library
-#    # Say we have a library (./mylib.so) and it has a function 'my_add' like so ...
+#    # Say we have a library (./mylib.so)
 #    =begin
 #      int
 #      my_add(int a, int b)
 #      {
-#        return(a+b);
+#        return(a + b);
+#      }
+#
+#      int*
+#      my_array()
+#      {
+#        static int a[3];
+#        a[0]=65;
+#        a[1]=66;
+#        a[2]=67;
+#        return a;
+#      }
+#
+#      void 
+#      my_out(int* a)
+#      {
+#        static int b[2];
+#        b[0]=0;
+#        b[1]=1;
+#        *a = b;
 #      }
 #    =end
 #
+#    #
 #    # Dynamic Loading (specified by path unless findable by dlopen())
+#    #
+#
 #    # Get a Dynamic Loaded library Handle
 #    dlh     = CFunc::call(CFunc::Pointer, "dlopen", "./mylib.so", CFunc::Int.new(1))
 #
+#    #
 #    # Get function pointers from the handle
+#    #
+#
 #    fun_ptr = CFunc::call(CFunc::Pointer, :dlsym, dlh, "my_add")
-#    f       = CFunc::FunctionPointer.new(fun_ptr)
+#    add     = CFunc::FunctionPointer.new(fun_ptr)
 #
-#    f.result_type    = CFunc::Int
-#    f.arguments_type = [CFunc::Int, CFunc::Int]
+#    add.result_type    = CFunc::Int
+#    add.arguments_type = [CFunc::Int, CFunc::Int]
 #
-#    # Call a function
-#    f.call(1,3).value #=> 4
+#    fun_ptr = CFunc::call(CFunc::Pointer, :dlsym, dlh, "my_array")
+#    array   = CFunc::FunctionPointer.new(fun_ptr)
+#
+#    array.result_type    = CFunc::CArray(CFunc::Int)
+#    array.arguments_type = []
+#
+#    # This functions takes an out parameter
+#    fun_ptr = CFunc::call(CFunc::Pointer, :dlsym, dlh, "my_out")
+#    out   = CFunc::FunctionPointer.new(fun_ptr)
+#
+#    out.result_type    = CFunc::Void
+#    # The out parameter's type will be CFunc::Pointer
+#    out.arguments_type = [CFunc::Pointer]
 #
 #    #
-#    # Arrays
+#    # Calling functions
+#    #
+#    add.call(1,3).value                                    #=> 4
+#
+#    a = array.call(); a = (0..2).map do |i| a[i].value end #=> [65,66,67]
+#
+#    # Out parameter
+#    a = CFunc::Int[2]
+#    out.call(a.addr)
+#    a = (0..1).map do |i| a[i].value end                   #=> [0,1]
+#
+#    # 
+#    # Type casting
+#    # Descendants of CFunc::Type have a `refer` method that takes a pointer argument
+#    # note how we pass a pointer to the address of the value
 #    #
 #
-#    # This allocates the space for four elements of SInt32
-#    ary = CFunc::CArray(CFunc::Int)[4]
-#    # set the values
-#    ary[0].value = 1
-#    ary[1].value = 2
-#    ary[2].value = 3
-#    ary[3].value = 4
-#    # get a value
-#    ary[1].value #=> 2
-#    
-#    #
-#    # Type Casting
-#    # Descendants of CFunc::Type have a 'refer' method that will wrap a pointer as that type
-#    #
+#    # Lets make our functions return pointers
+#    add.result_type   = CFunc::Pointer
+#    array.result_type = CFunc::Pointer
 #
-#    # This will wrap a pointer as an CFunc::Int
-#    int = CFunc::Int.refer(ptr)
-#    # This will wrap a pointer as an CFunc::CArray of type CFunc::Int
-#    ary = CFunc::CArray(CFunc::Int).refer(ptr)
+#    CFunc::Int.get(add.call(1,3).addr)                                                           #=> 4
+#    a = CFunc::CArray(CFunc::Int).refer(array.call().addr); a = (0..2).map do |i| a[i].value end #=> [65,66,67]
 #
 #    #
 #    # Memory Management
