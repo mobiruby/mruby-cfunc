@@ -137,7 +137,7 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
         break;
 
     case MRB_TT_SYMBOL:
-        v.value.sym = mrb_intern(mrb, arg->value.string.ptr);
+        v.value.sym = mrb_intern_cstr(mrb, arg->value.string.ptr);
         break;
 
     case MRB_TT_STRING:
@@ -264,7 +264,7 @@ cfunc_rubyvm_open(void *args)
         
         struct queue_task *task = vector_dequeue(data->queue);
         task->status = queue_task_running;
-        mrb_sym taskname = mrb_intern(mrb, task->name);
+        mrb_sym taskname = mrb_intern_cstr(mrb, task->name);
 
         int args_len = task->args_len;
         mrb_value *args = mrb_malloc(mrb, sizeof(struct task_arg) * task->args_len);

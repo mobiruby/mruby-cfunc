@@ -81,7 +81,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern(mrb, "to_ffi_value");
+    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
@@ -166,7 +166,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern(mrb, "to_ffi_value");
+    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
