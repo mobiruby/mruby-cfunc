@@ -199,16 +199,11 @@ mrb_value
 cfunc_pointer_to_s(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
-    size_t len;
     mrb_value str;
-    struct RString *s;
+
     const char* p = (const char*)get_cfunc_pointer_data(data);
-        
-    len = strlen(p);
-    str = mrb_str_new(mrb, 0, len);
-    s = mrb_str_ptr(str);
-    strcpy(s->ptr, p);
-    s->len = strlen(s->ptr);
+
+    str = mrb_str_new_cstr(mrb, p);
     return str;
 }
 
@@ -252,8 +247,15 @@ cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
 static mrb_value
 cfunc_string_addr(mrb_state *mrb, mrb_value self)
 {
-    mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, &RSTRING_PTR(self), false);
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
+     mrb_value ptr;
+
+     if (RSTRING(self)->flags & MRB_STR_EMBED) {
+	  const char* p = RSTRING(self)->as.ary;
+	  ptr = cfunc_pointer_new_with_pointer(mrb, &p, false);
+     } else {
+	  ptr = cfunc_pointer_new_with_pointer(mrb, &(RSTRING(self)->as.heap.ptr), false);
+     }
+     mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
     return ptr;
 }
 
