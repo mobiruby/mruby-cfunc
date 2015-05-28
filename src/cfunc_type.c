@@ -44,13 +44,13 @@ rclass_to_mrb_ffi_type(mrb_state *mrb, struct RClass *cls)
 {
     struct RClass *cls_ = cls;
     while(cls) {
-        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern_cstr(mrb, "@ffi_type"));
+        mrb_value ffi_type = mrb_obj_iv_get(mrb, (struct RObject*)cls, mrb_intern_lit(mrb, "@ffi_type"));
         if(mrb_test(ffi_type)) {
             return (struct mrb_ffi_type*)DATA_PTR(ffi_type);
         }
         cls = cls->super;
     }
-    mrb_raisef(mrb, E_TYPE_ERROR, "%s cannot convert to C value", mrb_class_name(mrb, cls_));
+    mrb_raisef(mrb, E_TYPE_ERROR, "%S cannot convert to C value", mrb_class_path(mrb, cls_));
     return NULL;
 }
 
@@ -66,7 +66,7 @@ mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
         case MRB_TT_FALSE:
             return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->sint32_class);
         default:
-            return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
+            return rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, val));
     }
 }
 
@@ -85,7 +85,7 @@ cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
     data->value._pointer = cfunc_pointer_ptr(pointer);
 
     struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_type_data, data);
-    mrb_obj_iv_set(mrb, obj, mrb_intern_cstr(mrb, "parent_pointer"), pointer); // keep for GC
+    mrb_obj_iv_set(mrb, obj, mrb_intern_lit(mrb, "parent_pointer"), pointer); // keep for GC
     return mrb_obj_value(obj);
 }
 
@@ -107,7 +107,7 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     mrb_value val;
     int argc = mrb_get_args(mrb, "|o", &val);
     if(argc > 0) {
-        struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+        struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
         if(mft && mft->mrb_to_data) {
             mft->mrb_to_data(mrb, val, data);
         }
@@ -164,7 +164,7 @@ mrb_value
 cfunc_type_get_value(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
     return mft->data_to_mrb(mrb, data);
 }
 
@@ -176,7 +176,7 @@ cfunc_type_set_value(mrb_state *mrb, mrb_value self)
     mrb_get_args(mrb, "o", &val);
     
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
     mft->mrb_to_data(mrb, val, data);
 
     return val;
@@ -196,7 +196,7 @@ cfunc_type_addr(mrb_state *mrb, mrb_value self)
         ptr = cfunc_pointer_new_with_pointer(mrb, &data->value._pointer, false);
     }
 
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_lit(mrb, "parent_pointer"), self); // keep for GC
 
     return ptr;
 }
@@ -248,8 +248,8 @@ int64_t mrb_to_int64(mrb_state *mrb, mrb_value val)
         }
 
     default:
-        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-            mrb_obj_classname(mrb, val));
+        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %S given",
+                   mrb_class_path(mrb, mrb_class(mrb, val)));
     }
     return 0; // can't reach here
 }
@@ -291,8 +291,8 @@ mrb_float float_value(mrb_state *mrb, mrb_value val)
         }
         
     default:
-        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %s given",
-            mrb_obj_classname(mrb, val));
+        mrb_raisef(mrb, E_TYPE_ERROR, "type mismatch: %S given",
+                   mrb_class_path(mrb, mrb_class(mrb, val)));
     }
     return 0.0; // can't reach here
 }
@@ -462,7 +462,7 @@ cfunc_nil_addr(mrb_state *mrb, mrb_value self)
         ptr = cfunc_pointer_new_with_pointer(mrb, &data->value._pointer, false);
     }
 
-    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_cstr(mrb, "parent_pointer"), self); // keep for GC
+    mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_lit(mrb, "parent_pointer"), self); // keep for GC
 
     return ptr;
 }
@@ -594,20 +594,20 @@ cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_
     .data_to_mrb = &cfunc_type_ffi_##type_##_data_to_mrb \
 }
 
-define_cfunc_type(sint8, &ffi_type_sint8, int8_t, int64_to_mrb, mrb_to_int64);
-define_cfunc_type(uint8, &ffi_type_uint8, uint8_t, int64_to_mrb, mrb_to_int64);
+define_cfunc_type(sint8, &ffi_type_sint8, int8_t, int64_to_mrb, mrb_to_int64)
+define_cfunc_type(uint8, &ffi_type_uint8, uint8_t, int64_to_mrb, mrb_to_int64)
 
-define_cfunc_type(sint16, &ffi_type_sint16, int16_t, int64_to_mrb, mrb_to_int64);
-define_cfunc_type(uint16, &ffi_type_uint16, uint16_t, int64_to_mrb, mrb_to_int64);
+define_cfunc_type(sint16, &ffi_type_sint16, int16_t, int64_to_mrb, mrb_to_int64)
+define_cfunc_type(uint16, &ffi_type_uint16, uint16_t, int64_to_mrb, mrb_to_int64)
 
-define_cfunc_type(sint32, &ffi_type_sint32, int32_t, int64_to_mrb, mrb_to_int64);
-define_cfunc_type(uint32, &ffi_type_uint32, uint32_t, int64_to_mrb, mrb_to_int64);
+define_cfunc_type(sint32, &ffi_type_sint32, int32_t, int64_to_mrb, mrb_to_int64)
+define_cfunc_type(uint32, &ffi_type_uint32, uint32_t, int64_to_mrb, mrb_to_int64)
 
-define_cfunc_type(sint64, &ffi_type_sint64, int64_t, int64_to_mrb, mrb_to_int64);
-define_cfunc_type(uint64, &ffi_type_uint64, uint64_t, int64_to_mrb, mrb_to_int64);
+define_cfunc_type(sint64, &ffi_type_sint64, int64_t, int64_to_mrb, mrb_to_int64)
+define_cfunc_type(uint64, &ffi_type_uint64, uint64_t, int64_to_mrb, mrb_to_int64)
 
-define_cfunc_type(float, &ffi_type_float, float, mrb_float_value, float_value);
-define_cfunc_type(double, &ffi_type_double, double, mrb_float_value, float_value);
+define_cfunc_type(float, &ffi_type_float, float, mrb_float_value, float_value)
+define_cfunc_type(double, &ffi_type_double, double, mrb_float_value, float_value)
 
 
 static struct mrb_ffi_type types[] = {
@@ -661,22 +661,22 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     for(i = 0; i < map_size; ++i) {
         struct RClass *new_class = mrb_define_class_under(mrb, module, types[i].name, type_class);
         mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_class_ffi_data_type, &types[i]));
-        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
+        mrb_obj_iv_set(mrb, (struct RObject*)new_class, mrb_intern_lit(mrb, "@ffi_type"), ffi_type);
     }
     DONE;
     
     mrb_value mod = mrb_obj_value(module);
-    state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Void")));
-    state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt8")));
-    state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt8")));
-    state->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt16")));
-    state->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt16")));
-    state->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt32")));
-    state->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt32")));
-    state->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "UInt64")));
-    state->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "SInt64")));
-    state->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Float")));
-    state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Double")));
+    state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "Void")));
+    state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "UInt8")));
+    state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "SInt8")));
+    state->uint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "UInt16")));
+    state->sint16_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "SInt16")));
+    state->uint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "UInt32")));
+    state->sint32_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "SInt32")));
+    state->uint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "UInt64")));
+    state->sint64_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "SInt64")));
+    state->float_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "Float")));
+    state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "Double")));
     DONE;
 
     mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());

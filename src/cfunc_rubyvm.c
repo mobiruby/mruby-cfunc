@@ -79,7 +79,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 
     case MRB_TT_SYMBOL:
         {
-            size_t len;
+            mrb_int len;
             const char* name = mrb_sym2name_len(mrb, v.value.sym, &len);
             arg->value.string.len = len;
             arg->value.string.ptr = mrb_malloc(mrb, len + 1);
@@ -89,10 +89,9 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 
     case MRB_TT_STRING:
         {
-            struct RString *str = mrb_str_ptr(v);
-            arg->value.string.len = str->len;
+            arg->value.string.len = RSTRING_LEN(v);
             arg->value.string.ptr = mrb_malloc(mrb, arg->value.string.len+1);
-            memcpy(arg->value.string.ptr, str->ptr, arg->value.string.len+1);
+            memcpy(arg->value.string.ptr, RSTRING_PTR(v), arg->value.string.len+1);
         }
         break;
 
@@ -214,7 +213,7 @@ static void
 cfunc_rubyvm_data_destructor(mrb_state *mrb, void *p_)
 {
     // todo
-};
+}
 
 
 const struct mrb_data_type cfunc_rubyvm_data_type = {
@@ -228,7 +227,7 @@ static void
 cfunc_rubyvm_task_data_destructor(mrb_state *mrb, void *p)
 {
     free_queue_task(mrb, (struct queue_task*)p);
-};
+}
 
 
 const struct mrb_data_type cfunc_rubyvm_task_data_type = {
@@ -294,7 +293,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
     struct cfunc_rubyvm_data *data = mrb_data_check_get_ptr(mrb, self, &cfunc_rubyvm_data_type);
 
     mrb_value name_obj, *args;
-    int args_len;
+    mrb_int args_len;
     mrb_get_args(mrb, "o*", &name_obj, &args, &args_len);
 
     struct queue_task *task = mrb_malloc(mrb, sizeof(struct queue_task));
@@ -368,7 +367,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
     // load script
     mrb_value filename, str;
     mrb_get_args(mrb, "S", &filename);
-    str = mrb_str_new_cstr(mrb, "mruby_data_");
+    str = mrb_str_new_lit(mrb, "mruby_data_");
     mrb_str_concat(mrb, str, mrb_str_new(mrb, RSTRING_PTR(filename), RSTRING_LEN(filename)));
 
     void *dlh = dlopen(NULL, RTLD_LAZY);
@@ -376,7 +375,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 
     if (!data->mrb_data) {
         dlclose(dlh);
-        mrb_raisef(mrb, E_SCRIPT_ERROR, "file '%s' not found.", RSTRING_PTR(str));
+        mrb_raisef(mrb, E_SCRIPT_ERROR, "file '%S' not found.", str);
     }
 
     // initial pthread

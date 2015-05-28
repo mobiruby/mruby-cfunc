@@ -23,7 +23,7 @@ static void
 cfunc_struct_data_destructor(mrb_state *mrb, void *p_)
 {
     // todo
-};
+}
 
 
 const struct mrb_data_type cfunc_struct_data_type = {
@@ -72,7 +72,7 @@ cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
     mft->c_to_mrb = &cfunc_type_ffi_struct_c_to_mrb;
 
     mrb_value __ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_struct_data_type, mft));
-    mrb_obj_iv_set(mrb, (struct RObject*)(mrb_class_ptr(klass)), mrb_intern_cstr(mrb, "@ffi_type"), __ffi_type);
+    mrb_obj_iv_set(mrb, (struct RObject*)(mrb_class_ptr(klass)), mrb_intern_lit(mrb, "@ffi_type"), __ffi_type);
     
     return mrb_nil_value();
 }

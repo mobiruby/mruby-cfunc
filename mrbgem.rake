@@ -4,16 +4,19 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
   spec.license = 'MIT'
   spec.authors = 'MobiRuby developers'
 
+  spec.add_dependency 'mruby-print', :core => 'mruby-print'
+  spec.add_dependency 'mruby-enumerator', :core => 'mruby-enumerator'
+
   def spec.use_pkg_config(pkg_config='pkg-config')
     self.linker.flags << `"#{pkg_config}" libffi --libs-only-L --libs-only-other`.chomp
     [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
-      cc.include_paths << `"#{pkg_config}" libffi --cflags`.chomp
+      cc.flags << `"#{pkg_config}" libffi --cflags`.chomp
     end
   end
 
   def spec.download_libffi(libffi_version = '3.0.13', tar = 'tar')
     libffi_url = "ftp://sourceware.org/pub/libffi/libffi-#{libffi_version}.tar.gz"
-    libffi_build_root = "build/libffi/#{build.name}"
+    libffi_build_root = "#{MRUBY_ROOT}/build/libffi/#{build.name}"
     libffi_dir = "#{libffi_build_root}/libffi-#{libffi_version}"
     libffi_a = "#{libffi_dir}/lib/libffi.a"
 

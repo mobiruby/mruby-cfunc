@@ -106,7 +106,7 @@ int vector_set(vector_p vec, size_t i, void* data){
 }
 
 int vector_insert(vector_p vec, size_t i, void* data){
-	int x;
+	size_t x;
 	
 	if(i > vec->length)
 		return -1;
@@ -121,7 +121,7 @@ int vector_insert(vector_p vec, size_t i, void* data){
 }
 
 void vector_remove(vector_p vec, size_t i){
-	int x;
+	size_t x;
 	if(i >= vec->length)
 		return;
 	vec->length--;
@@ -131,7 +131,7 @@ void vector_remove(vector_p vec, size_t i){
 }
 
 int vector_index(vector_p vec, void* data){
-	int x;
+	size_t x;
 	for(x=0;x<vec->length;++x){
 		if(vec->data[x] == data){
 			return x;

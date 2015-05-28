@@ -49,7 +49,7 @@ get_proc_address(const char* funcname)
 static mrb_value
 cfunc_call(mrb_state *mrb, mrb_value self)
 {
-    int margc;
+    mrb_int margc;
     mrb_value mresult_type, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
@@ -67,7 +67,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 #endif
 
         if(fp == NULL) {
-            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %S", mname);
             goto cfunc_call_exit;
         }
     }
@@ -81,7 +81,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
+    mrb_sym sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
@@ -124,7 +124,7 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
     else {
-        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
+        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %S", mname);
         goto cfunc_call_exit;
     }
 
@@ -138,7 +138,7 @@ cfunc_call_exit:
 static mrb_value
 cfunc_libcall(mrb_state *mrb, mrb_value self)
 {
-    int margc;
+    mrb_int margc;
     mrb_value mresult_type, mlib, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
@@ -152,7 +152,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         dlclose(dlh);
 
         if(fp == NULL) {
-            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %S", mname);
             goto cfunc_call_exit;
         }
     }
@@ -166,7 +166,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
+    mrb_sym sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
     mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
@@ -209,7 +209,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
     else {
-        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
+        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %S", mname);
         goto cfunc_call_exit;
     }
 

@@ -10,7 +10,7 @@ struct STest {
 struct STest cfunc_test_func1(struct STest val) {
     val.z = val.x + val.y;
     return val;
-};
+}
 
 struct STest2 {
     struct STest s;
@@ -20,7 +20,7 @@ struct STest2 {
 struct STest2 cfunc_test_func2(struct STest2 val) {
     val.xx = (double)(val.s.x + val.s.y) / val.s.z;
     return val;
-};
+}
 
 int cfunc_test_func3(int (*func)(uint32_t, uint32_t)) {
     return func(10, 20);
