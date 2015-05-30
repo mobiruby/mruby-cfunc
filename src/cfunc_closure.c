@@ -67,6 +67,7 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     data->mrb = mrb;
     data->closure = NULL;
     data->arg_types = NULL;
+    data->packed_args_size = -1;
     
     mrb_value rettype_mrb, block, args_mrb;
     mrb_get_args(mrb, "&oo", &block, &rettype_mrb, &args_mrb);
@@ -108,27 +109,41 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 {
     mrb_value self = mrb_obj_value(self_);
     struct cfunc_closure_data *data = DATA_PTR(self);
+    mrb_state *mrb = data->mrb;
 
-    int ai = mrb_gc_arena_save(data->mrb);
+    int ai = mrb_gc_arena_save(mrb);
 
-    mrb_value *ary = mrb_malloc(data->mrb, sizeof(mrb_value) * data->argc);
+    mrb_value *ary = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     int i;
+    if (data->packed_args_size == -1) {
+        // calculate packed args size
+        size_t result = 0;
+        for (i = 0; i < data->argc; ++i) {
+            ffi_type const *t = data->arg_ffi_types[i];
+            result += t->size + ((t->alignment - (t->size % t->alignment)) % t->alignment);
+        }
+        data->packed_args_size = result;
+    }
+    void *packed_args = mrb_malloc(mrb, data->packed_args_size);
+    mrb_value packed_args_value = cfunc_pointer_new_with_pointer(mrb, packed_args, true);
+    void *p = packed_args;
     for (i = 0; i < data->argc; ++i) {
-        // TODO: I felt too much consume memory
-        void *p = mrb_malloc(data->mrb, data->arg_ffi_types[i]->size);
-        memcpy(p, args[i], data->arg_ffi_types[i]->size);
-        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
-        ary[i] = mrb_funcall(data->mrb, data->arg_types[i], "refer", 1, pointer);
+        ffi_type const *t = data->arg_ffi_types[i];
+        memcpy(p, args[i], t->size);
+        mrb_value pointer = cfunc_pointer_new_with_pointer(mrb, p, false);
+        mrb_iv_set(mrb, pointer, mrb_intern_lit(mrb, "parent_pointer"), packed_args_value); // for GC
+        p = ((uint8_t*)p) + t->size + ((t->alignment - (t->size % t->alignment)) % t->alignment);
+        ary[i] = mrb_funcall(mrb, data->arg_types[i], "refer", 1, pointer);
     }
 
-    mrb_value block = mrb_iv_get(data->mrb, self, mrb_intern_lit(data->mrb, "@block"));
-    mrb_value result = mrb_funcall_argv(data->mrb, block, mrb_intern_lit(data->mrb, "call"), data->argc, ary);
-    mrb_free(data->mrb, ary);
+    mrb_value block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@block"));
+    mrb_value result = mrb_funcall_argv(mrb, block, mrb_intern_lit(mrb, "call"), data->argc, ary);
+    mrb_free(mrb, ary);
 
-    mrb_value ret_pointer = cfunc_pointer_new_with_pointer(data->mrb, ret, false);
-    mrb_funcall(data->mrb, data->return_type, "set", 2, ret_pointer, result);
+    mrb_value ret_pointer = cfunc_pointer_new_with_pointer(mrb, ret, false);
+    mrb_funcall(mrb, data->return_type, "set", 2, ret_pointer, result);
     
-    mrb_gc_arena_restore(data->mrb, ai);
+    mrb_gc_arena_restore(mrb, ai);
 }
 
 
