@@ -397,15 +397,15 @@ init_cfunc_rubyvm(mrb_state *mrb, struct RClass* module)
     state->rubyvm_class = rubyvm_class;
     set_cfunc_state(mrb, rubyvm_class, state);
 
-    mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, ARGS_REQ(1));
-    mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, ARGS_ANY());
+    mrb_define_class_method(mrb, rubyvm_class, "thread", cfunc_rubyvm_class_thread, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, rubyvm_class, "dispatch", cfunc_rubyvm_dispatch, MRB_ARGS_ANY());
 
     struct RClass *rubyvm_task_class = mrb_define_class_under(mrb, rubyvm_class, "Task", mrb->object_class);
     state->rubyvm_task_class = rubyvm_task_class;
 
-    mrb_define_method(mrb, rubyvm_task_class, "wait", cfunc_rubyvm_task_wait, ARGS_NONE());
-    mrb_define_method(mrb, rubyvm_task_class, "result", cfunc_rubyvm_task_result, ARGS_NONE());
-    mrb_define_method(mrb, rubyvm_task_class, "status", cfunc_rubyvm_task_status, ARGS_NONE());
+    mrb_define_method(mrb, rubyvm_task_class, "wait", cfunc_rubyvm_task_wait, MRB_ARGS_NONE());
+    mrb_define_method(mrb, rubyvm_task_class, "result", cfunc_rubyvm_task_result, MRB_ARGS_NONE());
+    mrb_define_method(mrb, rubyvm_task_class, "status", cfunc_rubyvm_task_status, MRB_ARGS_NONE());
 
     mrb_define_const(mrb, rubyvm_task_class, "QUEUED", mrb_fixnum_value(queue_task_queued));
     mrb_define_const(mrb, rubyvm_task_class, "RUNNING", mrb_fixnum_value(queue_task_running));

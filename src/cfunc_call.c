@@ -222,6 +222,6 @@ cfunc_call_exit:
 
 void init_cfunc_call(mrb_state *mrb, struct RClass* module)
 {
-    mrb_define_class_method(mrb, module, "call", cfunc_call, ARGS_ANY());
-    mrb_define_module_function(mrb, module, "libcall", cfunc_libcall, ARGS_ANY());
+    mrb_define_class_method(mrb, module, "call", cfunc_call, MRB_ARGS_ANY());
+    mrb_define_module_function(mrb, module, "libcall", cfunc_libcall, MRB_ARGS_ANY());
 }

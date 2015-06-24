@@ -323,20 +323,20 @@ init_cfunc_pointer(mrb_state *mrb, struct RClass* module)
     mrb_obj_iv_set(mrb, (struct RObject*)pointer_class, mrb_intern_lit(mrb, "@ffi_type"), ffi_type);
     state->pointer_class = pointer_class;
 
-    mrb_define_class_method(mrb, pointer_class, "refer", cfunc_pointer_refer, ARGS_REQ(1));
-    mrb_define_class_method(mrb, pointer_class, "malloc", cfunc_pointer_class_malloc, ARGS_REQ(1));
+    mrb_define_class_method(mrb, pointer_class, "refer", cfunc_pointer_refer, MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, pointer_class, "malloc", cfunc_pointer_class_malloc, MRB_ARGS_REQ(1));
 
-    mrb_define_method(mrb, pointer_class, "initialize", cfunc_pointer_initialize, ARGS_ANY());
-    mrb_define_method(mrb, pointer_class, "realloc", cfunc_pointer_realloc, ARGS_REQ(1));
-    mrb_define_method(mrb, pointer_class, "free", cfunc_pointer_free, ARGS_NONE());
-    mrb_define_method(mrb, pointer_class, "inspect", cfunc_pointer_inspect, ARGS_NONE());
-    mrb_define_method(mrb, pointer_class, "is_null?", cfunc_pointer_is_null, ARGS_NONE());
-    mrb_define_method(mrb, pointer_class, "autofree", cfunc_pointer_autofree, ARGS_NONE());
+    mrb_define_method(mrb, pointer_class, "initialize", cfunc_pointer_initialize, MRB_ARGS_ANY());
+    mrb_define_method(mrb, pointer_class, "realloc", cfunc_pointer_realloc, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, pointer_class, "free", cfunc_pointer_free, MRB_ARGS_NONE());
+    mrb_define_method(mrb, pointer_class, "inspect", cfunc_pointer_inspect, MRB_ARGS_NONE());
+    mrb_define_method(mrb, pointer_class, "is_null?", cfunc_pointer_is_null, MRB_ARGS_NONE());
+    mrb_define_method(mrb, pointer_class, "autofree", cfunc_pointer_autofree, MRB_ARGS_NONE());
 
-    mrb_define_method(mrb, pointer_class, "offset", cfunc_pointer_offset, ARGS_REQ(1));
-    mrb_define_method(mrb, pointer_class, "to_s", cfunc_pointer_to_s, ARGS_NONE());
+    mrb_define_method(mrb, pointer_class, "offset", cfunc_pointer_offset, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, pointer_class, "to_s", cfunc_pointer_to_s, MRB_ARGS_NONE());
     
     // add method to system classes
-    mrb_define_method(mrb, mrb->string_class, "addr", cfunc_string_addr, ARGS_NONE());
+    mrb_define_method(mrb, mrb->string_class, "addr", cfunc_string_addr, MRB_ARGS_NONE());
     mrb_obj_iv_set(mrb, (struct RObject *)mrb->string_class, mrb_intern_lit(mrb, "@ffi_type"), ffi_type);
 }

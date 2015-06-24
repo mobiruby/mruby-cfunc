@@ -58,9 +58,9 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
     init_cfunc_rubyvm(mrb, ns); mrb_gc_arena_restore(mrb, ai);
 	init_cfunc_platform(mrb, ns); mrb_gc_arena_restore(mrb, ai);
 
-    mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
-    mrb_define_class_method(mrb, ns, "errno", cfunc_errno, ARGS_NONE());
-    mrb_define_class_method(mrb, ns, "strerror", cfunc_strerror, ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "errno", cfunc_errno, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "strerror", cfunc_strerror, MRB_ARGS_NONE());
 }
 
 void
