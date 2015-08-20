@@ -86,5 +86,5 @@ init_cfunc_struct(mrb_state *mrb, struct RClass* module)
     set_cfunc_state(mrb, struct_class, state);
     state->struct_class = struct_class;
     
-    mrb_define_class_method(mrb, struct_class, "define_struct", cfunc_struct_define_struct, ARGS_REQ(1));
+    mrb_define_class_method(mrb, struct_class, "define_struct", cfunc_struct_define_struct, MRB_ARGS_REQ(1));
 }

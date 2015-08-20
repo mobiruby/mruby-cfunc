@@ -58,17 +58,17 @@ static inline struct cfunc_state *
 cfunc_state(mrb_state *mrb, struct RClass* obj)
 {
     if(obj == NULL) {
-        obj = (struct RClass*) mrb_object(mrb_vm_const_get(mrb, mrb_intern_cstr(mrb, "CFunc")));
+        obj = (struct RClass*) mrb_obj_ptr(mrb_vm_const_get(mrb, mrb_intern_cstr(mrb, "CFunc")));
     }
     mrb_value state = mrb_mod_cv_get(mrb, obj, mrb_intern_cstr(mrb, "cfunc_state"));
-    return (struct cfunc_state *)mrb_voidp(state);
+    return (struct cfunc_state *)mrb_cptr(state);
 }
 
 
 static inline void
 set_cfunc_state(mrb_state *mrb, struct RClass* klass, struct cfunc_state *state)
 {
-    mrb_value mstate = mrb_voidp_value(mrb, state);
+    mrb_value mstate = mrb_cptr_value(mrb, state);
     mrb_mod_cv_set(mrb, klass, mrb_intern_cstr(mrb, "cfunc_state"), mstate);
 }
 
