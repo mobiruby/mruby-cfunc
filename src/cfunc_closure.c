@@ -91,7 +91,7 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     
     if (data->closure) {
         if (ffi_prep_cif(data->cif, FFI_DEFAULT_ABI, data->argc, return_ffi_type, data->arg_ffi_types) == FFI_OK) {
-            if (ffi_prep_closure_loc(data->closure, data->cif, cfunc_closure_call_binding, mrb_object(self), closure_pointer) == FFI_OK) {
+            if (ffi_prep_closure_loc(data->closure, data->cif, cfunc_closure_call_binding, mrb_obj_ptr(self), closure_pointer) == FFI_OK) {
                 set_cfunc_pointer_data((struct cfunc_type_data *)data, closure_pointer);
                 return self;
             }
@@ -187,5 +187,5 @@ init_cfunc_closure(mrb_state *mrb, struct RClass* module)
     mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
     mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
 
-    mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, ARGS_ANY());
+    mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, MRB_ARGS_ANY());
 }

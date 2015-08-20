@@ -66,7 +66,7 @@ mrb_value_to_mrb_ffi_type(mrb_state *mrb, mrb_value val)
         case MRB_TT_FALSE:
             return rclass_to_mrb_ffi_type(mrb, cfunc_state(mrb, NULL)->sint32_class);
         default:
-            return rclass_to_mrb_ffi_type(mrb, mrb_object(val)->c);
+            return rclass_to_mrb_ffi_type(mrb, mrb_obj_ptr(val)->c);
     }
 }
 
@@ -107,7 +107,7 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     mrb_value val;
     int argc = mrb_get_args(mrb, "|o", &val);
     if(argc > 0) {
-        struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+        struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_obj_ptr(self)->c);
         if(mft && mft->mrb_to_data) {
             mft->mrb_to_data(mrb, val, data);
         }
@@ -164,7 +164,7 @@ mrb_value
 cfunc_type_get_value(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_obj_ptr(self)->c);
     return mft->data_to_mrb(mrb, data);
 }
 
@@ -176,7 +176,7 @@ cfunc_type_set_value(mrb_state *mrb, mrb_value self)
     mrb_get_args(mrb, "o", &val);
     
     struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_object(self)->c);
+    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_obj_ptr(self)->c);
     mft->mrb_to_data(mrb, val, data);
 
     return val;
@@ -643,17 +643,17 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     set_cfunc_state(mrb, type_class, state);
 
     int ai = mrb_gc_arena_save(mrb);
-    mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, ARGS_REQ(1));
-    mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, ARGS_NONE());
-    mrb_define_class_method(mrb, type_class, "align", cfunc_type_align, ARGS_NONE());
-    mrb_define_class_method(mrb, type_class, "get", cfunc_type_class_get, ARGS_REQ(1));
-    mrb_define_class_method(mrb, type_class, "set", cfunc_type_class_set, ARGS_REQ(2));
+    mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, type_class, "align", cfunc_type_align, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, type_class, "get", cfunc_type_class_get, MRB_ARGS_REQ(1));
+    mrb_define_class_method(mrb, type_class, "set", cfunc_type_class_set, MRB_ARGS_REQ(2));
 
-    mrb_define_method(mrb, type_class, "initialize", cfunc_type_initialize, ARGS_ANY());
-    mrb_define_method(mrb, type_class, "value", cfunc_type_get_value, ARGS_NONE());
-    mrb_define_method(mrb, type_class, "value=", cfunc_type_set_value, ARGS_REQ(1));
-    mrb_define_method(mrb, type_class, "addr", cfunc_type_addr, ARGS_NONE());
-    mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_addr, ARGS_NONE());
+    mrb_define_method(mrb, type_class, "initialize", cfunc_type_initialize, MRB_ARGS_ANY());
+    mrb_define_method(mrb, type_class, "value", cfunc_type_get_value, MRB_ARGS_NONE());
+    mrb_define_method(mrb, type_class, "value=", cfunc_type_set_value, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, type_class, "addr", cfunc_type_addr, MRB_ARGS_NONE());
+    mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_addr, MRB_ARGS_NONE());
     DONE;
 
     int map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
@@ -679,30 +679,30 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     state->double_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_cstr(mrb, "Double")));
     DONE;
 
-    mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, ARGS_NONE());
-    mrb_define_class_method(mrb, mrb->nil_class, "align", cfunc_nil_align, ARGS_NONE());
+    mrb_define_class_method(mrb, mrb->nil_class, "size", cfunc_nil_size, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, mrb->nil_class, "align", cfunc_nil_align, MRB_ARGS_NONE());
     DONE;
 
     // uint64 specific
     struct RClass *uint64_class = state->uint64_class;
-    mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, ARGS_REQ(1));
-    mrb_define_method(mrb, uint64_class, "value", cfunc_uint64_get_value, ARGS_NONE());
-    mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, ARGS_NONE());
-    mrb_define_method(mrb, uint64_class, "low=", cfunc_uint64_set_low, ARGS_REQ(1));
-    mrb_define_method(mrb, uint64_class, "high", cfunc_uint64_get_high, ARGS_NONE());
-    mrb_define_method(mrb, uint64_class, "high=", cfunc_uint64_set_high, ARGS_REQ(1));
-    mrb_define_method(mrb, uint64_class, "to_s", cfunc_uint64_to_s, ARGS_REQ(1));
-    mrb_define_method(mrb, uint64_class, "divide", cfunc_uint64_divide, ARGS_REQ(1));
+    mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "value", cfunc_uint64_get_value, MRB_ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, MRB_ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "low=", cfunc_uint64_set_low, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "high", cfunc_uint64_get_high, MRB_ARGS_NONE());
+    mrb_define_method(mrb, uint64_class, "high=", cfunc_uint64_set_high, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "to_s", cfunc_uint64_to_s, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, uint64_class, "divide", cfunc_uint64_divide, MRB_ARGS_REQ(1));
     DONE;
     
     // sint64 specific
     struct RClass *sint64_class = state->sint64_class;
-    mrb_define_class_method(mrb, sint64_class, "get", cfunc_sint64_class_get, ARGS_REQ(1));
-    mrb_define_method(mrb, sint64_class, "value", cfunc_sint64_get_value, ARGS_NONE());
-    mrb_define_method(mrb, sint64_class, "low", cfunc_uint64_get_low, ARGS_NONE());
-    mrb_define_method(mrb, sint64_class, "low=", cfunc_uint64_set_low, ARGS_REQ(1));
-    mrb_define_method(mrb, sint64_class, "high", cfunc_uint64_get_high, ARGS_NONE());
-    mrb_define_method(mrb, sint64_class, "high=", cfunc_uint64_set_high, ARGS_REQ(1));
-    mrb_define_method(mrb, sint64_class, "to_s", cfunc_int64_to_s, ARGS_REQ(1));
+    mrb_define_class_method(mrb, sint64_class, "get", cfunc_sint64_class_get, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, sint64_class, "value", cfunc_sint64_get_value, MRB_ARGS_NONE());
+    mrb_define_method(mrb, sint64_class, "low", cfunc_uint64_get_low, MRB_ARGS_NONE());
+    mrb_define_method(mrb, sint64_class, "low=", cfunc_uint64_set_low, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, sint64_class, "high", cfunc_uint64_get_high, MRB_ARGS_NONE());
+    mrb_define_method(mrb, sint64_class, "high=", cfunc_uint64_set_high, MRB_ARGS_REQ(1));
+    mrb_define_method(mrb, sint64_class, "to_s", cfunc_int64_to_s, MRB_ARGS_REQ(1));
     DONE;
 }
