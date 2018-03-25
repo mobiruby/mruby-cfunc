@@ -63,13 +63,14 @@ mrb_value
 cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
 {
     struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    mrb_int alloc_size;
     data->refer = false;
     data->autofree = false;
 
-    mrb_int alloc_size;
     mrb_get_args(mrb, "i", &alloc_size);
     
     set_cfunc_pointer_data(data, mrb_malloc(mrb, alloc_size));
+    data->autofree = true;
     
     return mrb_obj_value(Data_Wrap_Struct(mrb, mrb_class_ptr(klass), &cfunc_pointer_data_type, data));
 }
@@ -79,12 +80,13 @@ mrb_value
 cfunc_pointer_new_with_pointer(mrb_state *mrb, void *p, bool autofree)
 {
     struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    struct cfunc_state *state;
     data->refer = false;
     data->autofree = autofree;
 
     set_cfunc_pointer_data(data, p);
 
-    struct cfunc_state *state = cfunc_state(mrb, NULL);
+    state = cfunc_state(mrb, NULL);
     return mrb_obj_value(Data_Wrap_Struct(mrb, state->pointer_class, &cfunc_pointer_data_type, data));
 }
 
@@ -94,15 +96,16 @@ cfunc_pointer_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
     struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    mrb_value pointer;
+    struct RObject *obj;
     data->refer = true;
     data->autofree = false;
 
-    mrb_value pointer;
     mrb_get_args(mrb, "o", &pointer);
 
     data->value._pointer = cfunc_pointer_ptr(pointer);
 
-    struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_pointer_data_type, data);
+    obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_pointer_data_type, data);
     mrb_obj_iv_set(mrb, obj, mrb_intern_lit(mrb, "parent_pointer"), pointer); // keep for GC
     return mrb_obj_value(obj);
 }
@@ -112,6 +115,8 @@ mrb_value
 cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data;
+    mrb_value ptr;
+    int argc;
     data = mrb_data_check_get_ptr(mrb, self, &cfunc_pointer_data_type);
     if(!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
@@ -121,8 +126,7 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
     data->refer = false;
     data->autofree = false;
 
-    mrb_value ptr;
-    int argc = mrb_get_args(mrb, "|o", &ptr);
+    argc = mrb_get_args(mrb, "|o", &ptr);
     if(argc == 0) {
         set_cfunc_pointer_data(data, NULL);
     }
@@ -164,6 +168,7 @@ mrb_value
 cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
+    char cstr[256];
     
     mrb_value type = mrb_funcall(mrb, mrb_obj_value(mrb_class(mrb, self)), "type", 0);
     const char* classname = mrb_class_name(mrb, mrb_class_ptr(type));
@@ -171,7 +176,6 @@ cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
         classname = "Unknown pointer";
     }
 
-    char cstr[256];
     snprintf(cstr, sizeof(cstr), "<%s pointer=%p>", classname, get_cfunc_pointer_data(data));
     
     return mrb_str_new_cstr(mrb, cstr);
@@ -227,6 +231,7 @@ cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data = DATA_PTR(self);
     void *ptr = NULL;
+    mrb_value obj;
     if(data->refer) {
         ptr = data->value._pointer;
     }
@@ -234,7 +239,7 @@ cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
         ptr = &data->value._pointer;
     }
 
-    mrb_value obj = cfunc_pointer_new_with_pointer(mrb, ptr, false);
+    obj = cfunc_pointer_new_with_pointer(mrb, ptr, false);
     mrb_obj_iv_set(mrb, mrb_obj_ptr(obj), mrb_intern_lit(mrb, "parent_pointer"), self); // keep for GC
     return obj;
 }
@@ -243,6 +248,7 @@ cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
 static mrb_value
 cfunc_string_addr(mrb_state *mrb, mrb_value self)
 {
+    mrb_value ptr;
     // move string to heap
     mrb_str_modify(mrb, RSTRING(self));
     if (RSTR_EMBED_P(RSTRING(self))) {
@@ -252,7 +258,7 @@ cfunc_string_addr(mrb_state *mrb, mrb_value self)
         mrb_assert(!RSTR_EMBED_P(RSTRING(self)));
     }
 
-    mrb_value ptr = cfunc_pointer_new_with_pointer(mrb, &RSTRING(self)->as.heap.ptr, false);
+    ptr = cfunc_pointer_new_with_pointer(mrb, &RSTRING(self)->as.heap.ptr, false);
     mrb_obj_iv_set(mrb, mrb_obj_ptr(ptr), mrb_intern_lit(mrb, "parent_pointer"), self); // keep for GC
     return ptr;
 }

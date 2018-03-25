@@ -46,10 +46,11 @@ mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 {
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
     struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
+    int ai;
     set_cfunc_state(mrb, ns, state);
     state->namespace = ns;
 
-	int ai = mrb_gc_arena_save(mrb);
+	ai = mrb_gc_arena_save(mrb);
     init_cfunc_type(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_pointer(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_struct(mrb, ns); mrb_gc_arena_restore(mrb, ai);

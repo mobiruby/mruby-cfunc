@@ -53,15 +53,21 @@ cfunc_call(mrb_state *mrb, mrb_value self)
     mrb_value mresult_type, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
+    void *fp = NULL;
+    mrb_sym sym_to_ffi_value;
+    int i;
+    mrb_value nil_ary[1];
+    ffi_type *result_type;
+    mrb_value mresult = mrb_nil_value();
+    ffi_cif cif;
 
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
 
-    void *fp = NULL;
     if(mrb_string_p(mname) || mrb_symbol_p(mname)) {
 #ifndef _WIN32
         void *dlh = dlopen(NULL, RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
-        dlclose(dlh);
+        // dlclose(dlh);
 #else
         fp = get_proc_address(mrb_string_value_ptr(mrb, mname));
 #endif
@@ -81,11 +87,9 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
+    sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
-    mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
-    int i;
     for(i = 0; i < margc; ++i) {
         if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
@@ -97,14 +101,12 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
     
-    ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
+    result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
     if (result_type == NULL) {
         cfunc_mrb_raise_without_jump(mrb, E_ARGUMENT_ERROR, "ignore return type %s", mrb_class_name(mrb, mrb_class_ptr(mresult_type)));
         goto cfunc_call_exit;
     }
     
-    mrb_value mresult = mrb_nil_value();
-    ffi_cif cif;
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {
@@ -142,10 +144,16 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
     mrb_value mresult_type, mlib, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
+    void *fp = NULL;
+    mrb_sym sym_to_ffi_value;
+    mrb_value nil_ary[1];
+    int i;
+    ffi_type *result_type;
+    mrb_value mresult = mrb_nil_value();
+    ffi_cif cif;
 
     mrb_get_args(mrb, "oSo*", &mresult_type, &mlib, &mname, &margs, &margc);
 
-    void *fp = NULL;
     if((mrb_string_p(mname) || mrb_symbol_p(mname))) {
         void *dlh = dlopen(mrb_string_value_ptr(mrb, mlib), RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
@@ -166,11 +174,9 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
 
     args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
     values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
+    sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
-    mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
-    int i;
     for(i = 0; i < margc; ++i) {
         if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
@@ -182,14 +188,12 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
 
-    ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
+    result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
     if (result_type == NULL) {
         cfunc_mrb_raise_without_jump(mrb, E_ARGUMENT_ERROR, "ignore return type %s", mrb_class_name(mrb, mrb_class_ptr(mresult_type)));
         goto cfunc_call_exit;
     }
 
-    mrb_value mresult = mrb_nil_value();
-    ffi_cif cif;
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {

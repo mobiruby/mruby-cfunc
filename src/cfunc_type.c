@@ -76,15 +76,16 @@ cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
     struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    mrb_value pointer;
+    struct RObject *obj;
     data->autofree = false;
 
-    mrb_value pointer;
     mrb_get_args(mrb, "o", &pointer);
 
     data->refer = true;
     data->value._pointer = cfunc_pointer_ptr(pointer);
 
-    struct RObject *obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_type_data, data);
+    obj = (struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_type_data, data);
     mrb_obj_iv_set(mrb, obj, mrb_intern_lit(mrb, "parent_pointer"), pointer); // keep for GC
     return mrb_obj_value(obj);
 }
@@ -94,6 +95,8 @@ static mrb_value
 cfunc_type_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_type_data *data;
+    mrb_value val;
+    int argc;
     data = mrb_data_check_get_ptr(mrb, self, &cfunc_type_data);
     if (!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
@@ -104,8 +107,7 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     DATA_PTR(self) = data;
     DATA_TYPE(self) = &cfunc_type_data;   
 
-    mrb_value val;
-    int argc = mrb_get_args(mrb, "|o", &val);
+    argc = mrb_get_args(mrb, "|o", &val);
     if(argc > 0) {
         struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
         if(mft && mft->mrb_to_data) {
@@ -140,9 +142,10 @@ mrb_value
 cfunc_type_class_get(mrb_state *mrb, mrb_value klass)
 {
     mrb_value pointer;
+    struct mrb_ffi_type *mft;
     mrb_get_args(mrb, "o", &pointer);
 
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
+    mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
     return mft->c_to_mrb(mrb, cfunc_pointer_ptr(pointer));
 }
 
@@ -151,9 +154,10 @@ mrb_value
 cfunc_type_class_set(mrb_state *mrb, mrb_value klass)
 {
     mrb_value pointer, val;
+    struct mrb_ffi_type *mft;
     mrb_get_args(mrb, "oo", &pointer, &val);
 
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
+    mft = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(klass));
     mft->mrb_to_c(mrb, val, cfunc_pointer_ptr(pointer));
 
     return val;
@@ -173,10 +177,12 @@ mrb_value
 cfunc_type_set_value(mrb_state *mrb, mrb_value self)
 {
     mrb_value val;
+    struct cfunc_type_data *data;
+    struct mrb_ffi_type *mft;
     mrb_get_args(mrb, "o", &val);
     
-    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
-    struct mrb_ffi_type *mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
+    data = (struct cfunc_type_data*)DATA_PTR(self);
+    mft = rclass_to_mrb_ffi_type(mrb, mrb_class(mrb, self));
     mft->mrb_to_data(mrb, val, data);
 
     return val;
@@ -303,11 +309,12 @@ mrb_value
 cfunc_uint64_class_get(mrb_state *mrb, mrb_value klass)
 {
     mrb_value pointer;
+    uint64_t uint64;
     mrb_get_args(mrb, "o", &pointer);
 
-    uint64_t uint64 = *(uint64_t*)cfunc_pointer_ptr(pointer);
+    uint64 = *(uint64_t*)cfunc_pointer_ptr(pointer);
 
-    if(uint64 > UINT32_MAX) {
+    if(uint64 > MRB_INT_MAX) {
         mrb_raise(mrb, E_TYPE_ERROR, "too big. Use low, high");
     }
     return int64_to_mrb(mrb, uint64);
@@ -366,9 +373,10 @@ mrb_value
 cfunc_uint64_set_low(mrb_state *mrb, mrb_value self)
 {
     mrb_value val;
+    struct cfunc_type_data *data;
     mrb_get_args(mrb, "o", &val);
     
-    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    data = (struct cfunc_type_data*)DATA_PTR(self);
     data->value._uint64 = (data->value._uint64 & 0xffffffff00000000) | (((uint64_t)mrb_to_int64(mrb, val)) & 0xffffffff);
     return val;
 }
@@ -386,9 +394,10 @@ mrb_value
 cfunc_uint64_set_high(mrb_state *mrb, mrb_value self)
 {
     mrb_value val;
+    struct cfunc_type_data *data;
     mrb_get_args(mrb, "o", &val);
     
-    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
+    data = (struct cfunc_type_data*)DATA_PTR(self);
     data->value._uint64 = (data->value._uint64 & 0x00000000ffffffff) | (((uint64_t)mrb_to_int64(mrb, val)) << 32);
     
     return val;
@@ -412,11 +421,12 @@ mrb_value
 cfunc_sint64_class_get(mrb_state *mrb, mrb_value klass)
 {
     mrb_value pointer;
+    int64_t sint64;
     mrb_get_args(mrb, "o", &pointer);
 
-    int64_t sint64 = *(int64_t*)cfunc_pointer_ptr(pointer);
+    sint64 = *(int64_t*)cfunc_pointer_ptr(pointer);
 
-    if(sint64 > INT32_MAX || sint64 < INT32_MIN) {
+    if(sint64 > MRB_INT_MAX || sint64 < MRB_INT_MIN) {
         mrb_raise(mrb, E_TYPE_ERROR, "out of range. Use low, high");
     }
     return int64_to_mrb(mrb, sint64);
@@ -638,11 +648,14 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
 {
     struct cfunc_state *state = cfunc_state(mrb, module);
     struct RClass *type_class = mrb_define_class_under(mrb, module, "Type", mrb->object_class);
+    int ai, map_size, i;
+    mrb_value mod;
+    struct RClass *uint64_class, *sint64_class;
     MRB_SET_INSTANCE_TT(type_class, MRB_TT_DATA);
     state->type_class = type_class;
     set_cfunc_state(mrb, type_class, state);
 
-    int ai = mrb_gc_arena_save(mrb);
+    ai = mrb_gc_arena_save(mrb);
     mrb_define_class_method(mrb, type_class, "refer", cfunc_type_class_refer, MRB_ARGS_REQ(1));
     mrb_define_class_method(mrb, type_class, "size", cfunc_type_size, MRB_ARGS_NONE());
     mrb_define_class_method(mrb, type_class, "align", cfunc_type_align, MRB_ARGS_NONE());
@@ -656,8 +669,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     mrb_define_method(mrb, type_class, "to_ffi_value", cfunc_type_addr, MRB_ARGS_NONE());
     DONE;
 
-    int map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
-    int i;
+    map_size = sizeof(types) / sizeof(struct mrb_ffi_type);
     for(i = 0; i < map_size; ++i) {
         struct RClass *new_class = mrb_define_class_under(mrb, module, types[i].name, type_class);
         mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_class_ffi_data_type, &types[i]));
@@ -665,7 +677,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     }
     DONE;
     
-    mrb_value mod = mrb_obj_value(module);
+    mod = mrb_obj_value(module);
     state->void_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "Void")));
     state->uint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "UInt8")));
     state->sint8_class = mrb_class_ptr(mrb_const_get(mrb, mod, mrb_intern_lit(mrb, "SInt8")));
@@ -684,7 +696,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     DONE;
 
     // uint64 specific
-    struct RClass *uint64_class = state->uint64_class;
+    uint64_class = state->uint64_class;
     mrb_define_class_method(mrb, uint64_class, "get", cfunc_uint64_class_get, MRB_ARGS_REQ(1));
     mrb_define_method(mrb, uint64_class, "value", cfunc_uint64_get_value, MRB_ARGS_NONE());
     mrb_define_method(mrb, uint64_class, "low", cfunc_uint64_get_low, MRB_ARGS_NONE());
@@ -696,7 +708,7 @@ void init_cfunc_type(mrb_state *mrb, struct RClass* module)
     DONE;
     
     // sint64 specific
-    struct RClass *sint64_class = state->sint64_class;
+    sint64_class = state->sint64_class;
     mrb_define_class_method(mrb, sint64_class, "get", cfunc_sint64_class_get, MRB_ARGS_REQ(1));
     mrb_define_method(mrb, sint64_class, "value", cfunc_sint64_get_value, MRB_ARGS_NONE());
     mrb_define_method(mrb, sint64_class, "low", cfunc_uint64_get_low, MRB_ARGS_NONE());

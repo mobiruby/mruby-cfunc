@@ -55,6 +55,10 @@ mrb_value
 cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_closure_data *data;
+    mrb_value rettype_mrb, block, args_mrb;
+    ffi_type *return_ffi_type;
+    int i;
+    void *closure_pointer = NULL;
     data = mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
     if (!data) {
         data = mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
@@ -69,16 +73,14 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     data->arg_types = NULL;
     data->packed_args_size = -1;
     
-    mrb_value rettype_mrb, block, args_mrb;
     mrb_get_args(mrb, "&oo", &block, &rettype_mrb, &args_mrb);
     data->argc = RARRAY_LEN(args_mrb);
     
-    ffi_type *return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
+    return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
     data->return_type = rettype_mrb;
 
     data->arg_ffi_types = mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
     data->arg_types = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
-    int i;
     for (i = 0; i < data->argc; ++i) {
         data->arg_types[i] = mrb_ary_ref(mrb, args_mrb, i);
         data->arg_ffi_types[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(data->arg_types[i]))->ffi_type_value;
@@ -86,7 +88,6 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     
     mrb_iv_set(mrb, self, mrb_intern_lit(data->mrb, "@block"), block);
 
-    void *closure_pointer = NULL;
     data->closure = ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
     data->cif = mrb_malloc(mrb, sizeof(ffi_cif));
     
@@ -115,6 +116,9 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 
     mrb_value *ary = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     int i;
+    void *packed_args;
+    mrb_value packed_args_value, block, result, ret_pointer;
+    void *p;
     if (data->packed_args_size == -1) {
         // calculate packed args size
         size_t result = 0;
@@ -124,23 +128,24 @@ cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
         }
         data->packed_args_size = result;
     }
-    void *packed_args = mrb_malloc(mrb, data->packed_args_size);
-    mrb_value packed_args_value = cfunc_pointer_new_with_pointer(mrb, packed_args, true);
-    void *p = packed_args;
+    packed_args = mrb_malloc(mrb, data->packed_args_size);
+    packed_args_value = cfunc_pointer_new_with_pointer(mrb, packed_args, true);
+    p = packed_args;
     for (i = 0; i < data->argc; ++i) {
         ffi_type const *t = data->arg_ffi_types[i];
+        mrb_value pointer;
         memcpy(p, args[i], t->size);
-        mrb_value pointer = cfunc_pointer_new_with_pointer(mrb, p, false);
+        pointer = cfunc_pointer_new_with_pointer(mrb, p, false);
         mrb_iv_set(mrb, pointer, mrb_intern_lit(mrb, "parent_pointer"), packed_args_value); // for GC
         p = ((uint8_t*)p) + t->size + ((t->alignment - (t->size % t->alignment)) % t->alignment);
         ary[i] = mrb_funcall(mrb, data->arg_types[i], "refer", 1, pointer);
     }
 
-    mrb_value block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@block"));
-    mrb_value result = mrb_funcall_argv(mrb, block, mrb_intern_lit(mrb, "call"), data->argc, ary);
+    block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@block"));
+    result = mrb_funcall_argv(mrb, block, mrb_intern_lit(mrb, "call"), data->argc, ary);
     mrb_free(mrb, ary);
 
-    mrb_value ret_pointer = cfunc_pointer_new_with_pointer(mrb, ret, false);
+    ret_pointer = cfunc_pointer_new_with_pointer(mrb, ret, false);
     mrb_funcall(mrb, data->return_type, "set", 2, ret_pointer, result);
     
     mrb_gc_arena_restore(mrb, ai);
@@ -197,9 +202,10 @@ init_cfunc_closure(mrb_state *mrb, struct RClass* module)
 {
     struct cfunc_state *state = cfunc_state(mrb, module);
     struct RClass *closure_class = mrb_define_class_under(mrb, module, "Closure", state->pointer_class);
+    mrb_value ffi_type;
     state->closure_class = closure_class;
 
-    mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
+    ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
     mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern_lit(mrb, "@ffi_type"), ffi_type);
 
     mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, MRB_ARGS_ANY());

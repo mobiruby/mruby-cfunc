@@ -57,10 +57,11 @@ struct cfunc_state {
 static inline struct cfunc_state *
 cfunc_state(mrb_state *mrb, struct RClass* obj)
 {
+    mrb_value state;
     if(obj == NULL) {
         obj = mrb_module_get(mrb, "CFunc");
     }
-    mrb_value state = mrb_mod_cv_get(mrb, obj, mrb_intern_lit(mrb, "cfunc_state"));
+    state = mrb_mod_cv_get(mrb, obj, mrb_intern_lit(mrb, "cfunc_state"));
     return (struct cfunc_state *)mrb_cptr(state);
 }
 
