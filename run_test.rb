@@ -11,9 +11,9 @@ end
 
 MRuby::Build.new do |conf|
   toolchain :gcc
-  conf.gembox 'default'
+  # conf.gembox 'default'
 
-  conf.gem "#{root}/mrbgems/mruby-eval"
+  # conf.gem "#{root}/mrbgems/mruby-eval"
 
   conf.gem File.expand_path(File.dirname(__FILE__)) do |g|
     # g.use_pkg_config
