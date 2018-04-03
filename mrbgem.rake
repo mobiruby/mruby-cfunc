@@ -21,13 +21,6 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     end
   end
 
-  if spec.respond_to?(:search_package) && spec.search_package('libffi')
-    spec.linker.libraries << 'pthread' << 'dl'
-    spec.cc.flags << %w(-pthread)
-    spec.linker.flags << "-Wl,--export-dynamic,--dynamic-list=#{spec.dir}/test/func.txt"
-    next
-  end
-
   def spec.use_pkg_config(pkg_config='pkg-config')
     self.linker.flags << `"#{pkg_config}" libffi --libs-only-L --libs-only-other`.chomp
     [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
@@ -59,6 +52,13 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     [self.cc, self.cxx, self.objc, self.mruby.cc, self.mruby.cxx, self.mruby.objc].each do |cc|
       cc.include_paths << File.join(File.dirname(libffi_a), "libffi-#{libffi_version}", 'include')
     end
+  end
+
+  if spec.respond_to?(:search_package) && spec.search_package('libffi')
+    spec.linker.libraries << 'pthread' << 'dl'
+    spec.cc.flags << %w(-pthread)
+    spec.linker.flags << "-Wl,--export-dynamic,--dynamic-list=#{spec.dir}/test/func.txt"
+    next
   end
 
   spec.linker.libraries << %w(ffi dl pthread)
