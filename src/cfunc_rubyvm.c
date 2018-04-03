@@ -148,7 +148,7 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
             v = mrb_ary_new_capa(mrb, arg->value.array.len);
             mrb_ary_resize(mrb, v, arg->value.array.len);
             for(i=0; i<arg->value.array.len; i++) {
-                RARRAY_PTR(v)[i] = task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]);
+                mrb_ary_set(mrb, v, i, task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]));
             }
         }
         break;
