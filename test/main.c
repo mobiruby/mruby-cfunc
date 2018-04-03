@@ -1,5 +1,3 @@
-#include "cfunc.h"
-
 #include "mruby.h"
 #include "mruby/dump.h"
 #include "mruby/proc.h"
