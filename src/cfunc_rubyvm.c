@@ -216,6 +216,8 @@ static void
 cfunc_rubyvm_data_destructor(mrb_state *mrb, void *p)
 {
     struct cfunc_rubyvm_data *vm = (struct cfunc_rubyvm_data*)p;
+    if (!vm) { return; }
+
     pthread_cancel(vm->thread);
 
     while (vm->queue->length != 0) {
@@ -404,6 +406,8 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 
     if (!data->mrb_data) {
         dlclose(dlh);
+        mrb_free(mrb, data);
+        DATA_PTR(self) = NULL;
         mrb_raisef(mrb, E_SCRIPT_ERROR, "file '%S' not found.", str);
     }
 
