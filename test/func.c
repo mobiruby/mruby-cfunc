@@ -37,7 +37,7 @@ int check_offset5(uint8_t *p1, uint8_t *p2) {
 static int test_func(uint32_t v1, uint32_t v2) { return v1 + v2; }
 
 void test_func_ref() {
-    struct STest v1 = {0, 0, 0};
+    struct STest v1 = {0, 0, 1};
     struct STest2 v2 = { {}, 0.0 };
     cfunc_test_func1(v1);
     cfunc_test_func2(v2);
