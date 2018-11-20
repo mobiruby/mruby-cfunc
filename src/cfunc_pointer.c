@@ -62,7 +62,7 @@ void set_cfunc_pointer_data(struct cfunc_type_data *data, void *p)
 mrb_value
 cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
 {
-    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     mrb_int alloc_size;
     data->refer = false;
     data->autofree = false;
@@ -79,7 +79,7 @@ cfunc_pointer_class_malloc(mrb_state *mrb, mrb_value klass)
 mrb_value
 cfunc_pointer_new_with_pointer(mrb_state *mrb, void *p, bool autofree)
 {
-    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     struct cfunc_state *state;
     data->refer = false;
     data->autofree = autofree;
@@ -95,7 +95,7 @@ mrb_value
 cfunc_pointer_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     mrb_value pointer;
     struct RObject *obj;
     data->refer = true;
@@ -117,9 +117,10 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
     struct cfunc_type_data *data;
     mrb_value ptr;
     int argc;
-    data = mrb_data_check_get_ptr(mrb, self, &cfunc_pointer_data_type);
+
+    data = (struct cfunc_type_data*)mrb_data_check_get_ptr(mrb, self, &cfunc_pointer_data_type);
     if(!data) {
-        data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+        data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         DATA_PTR(self) = data;
         DATA_TYPE(self) = &cfunc_pointer_data_type;   
     }
@@ -141,7 +142,7 @@ cfunc_pointer_initialize(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_realloc(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     
     mrb_int alloc_size;
     mrb_get_args(mrb, "i", &alloc_size);
@@ -154,7 +155,7 @@ cfunc_pointer_realloc(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_free(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     
     mrb_free(mrb, get_cfunc_pointer_data(data));
     data->autofree = false;
@@ -167,7 +168,7 @@ cfunc_pointer_free(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     char cstr[256];
     
     mrb_value type = mrb_funcall(mrb, mrb_obj_value(mrb_class(mrb, self)), "type", 0);
@@ -185,7 +186,7 @@ cfunc_pointer_inspect(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_is_null(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     return (get_cfunc_pointer_data(data) == NULL) ? mrb_true_value() : mrb_false_value();
 }
 
@@ -193,7 +194,7 @@ cfunc_pointer_is_null(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_autofree(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     data->autofree = true;
     return self;
 }
@@ -202,7 +203,7 @@ cfunc_pointer_autofree(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_to_s(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     const char* p = (const char*)get_cfunc_pointer_data(data);
     return mrb_str_new_cstr(mrb, p);
 }
@@ -211,8 +212,9 @@ cfunc_pointer_to_s(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     mrb_int offset;
+
     mrb_get_args(mrb, "i", &offset);
 
     if(offset == 0) {
@@ -229,9 +231,10 @@ cfunc_pointer_offset(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_pointer_addr(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_type_data *data = DATA_PTR(self);
+    struct cfunc_type_data *data = (struct cfunc_type_data*)DATA_PTR(self);
     void *ptr = NULL;
     mrb_value obj;
+
     if(data->refer) {
         ptr = data->value._pointer;
     }

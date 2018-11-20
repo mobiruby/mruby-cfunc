@@ -25,7 +25,8 @@
 static void
 cfunc_closure_destructor(mrb_state *mrb, void *p_)
 {
-    struct cfunc_closure_data *p = p_;
+    struct cfunc_closure_data *p = (struct cfunc_closure_data*)p_;
+
     if (p->closure) {
         ffi_closure_free(p->closure);
     }
@@ -59,9 +60,10 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     ffi_type *return_ffi_type;
     int i;
     void *closure_pointer = NULL;
-    data = mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
+
+    data = (struct cfunc_closure_data*)mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
     if (!data) {
-        data = mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
+        data = (struct cfunc_closure_data*)mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
     }
     data->refer = 0;
     data->autofree = 0;
@@ -79,8 +81,8 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
     data->return_type = rettype_mrb;
 
-    data->arg_ffi_types = mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
-    data->arg_types = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
+    data->arg_ffi_types = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
+    data->arg_types = (mrb_value*)mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     for (i = 0; i < data->argc; ++i) {
         data->arg_types[i] = mrb_ary_ref(mrb, args_mrb, i);
         data->arg_ffi_types[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(data->arg_types[i]))->ffi_type_value;
@@ -88,8 +90,8 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     
     mrb_iv_set(mrb, self, mrb_intern_lit(data->mrb, "@block"), block);
 
-    data->closure = ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
-    data->cif = mrb_malloc(mrb, sizeof(ffi_cif));
+    data->closure = (ffi_closure*)ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
+    data->cif = (ffi_cif*)mrb_malloc(mrb, sizeof(ffi_cif));
     
     if (data->closure) {
         if (ffi_prep_cif(data->cif, FFI_DEFAULT_ABI, data->argc, return_ffi_type, data->arg_ffi_types) == FFI_OK) {
@@ -109,12 +111,12 @@ void
 cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 {
     mrb_value self = mrb_obj_value(self_);
-    struct cfunc_closure_data *data = DATA_PTR(self);
+    struct cfunc_closure_data *data = (struct cfunc_closure_data*)DATA_PTR(self);
     mrb_state *mrb = data->mrb;
 
     int ai = mrb_gc_arena_save(mrb);
 
-    mrb_value *ary = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
+    mrb_value *ary = (mrb_value*)mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     int i;
     void *packed_args;
     mrb_value packed_args_value, block, result, ret_pointer;

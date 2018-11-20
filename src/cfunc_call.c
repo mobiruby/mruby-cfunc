@@ -88,8 +88,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
-    values = mrb_malloc(mrb, sizeof(void*) * margc);
+    args = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = (void**)mrb_malloc(mrb, sizeof(void*) * margc);
     sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
     nil_ary[0] = mrb_nil_value();
@@ -121,8 +121,8 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         else {
             result = NULL;
         }
-        ffi_call(&cif, fp, result, values);
-        
+        ffi_call(&cif, (void(*)())fp, result, values);
+
         if(result) {
             mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, true);
             mresult = mrb_funcall(mrb, mresult_type, "refer", 1, result_ptr);
@@ -178,8 +178,8 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
-    values = mrb_malloc(mrb, sizeof(void*) * margc);
+    args = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = (void**)mrb_malloc(mrb, sizeof(void*) * margc);
     sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
     nil_ary[0] = mrb_nil_value();
@@ -211,7 +211,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         else {
             result = NULL;
         }
-        ffi_call(&cif, fp, result, values);
+        ffi_call(&cif, (void(*)())fp, result, values);
 
         if(result) {
             mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, true);

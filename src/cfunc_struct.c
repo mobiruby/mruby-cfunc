@@ -60,18 +60,18 @@ cfunc_struct_define_struct(mrb_state *mrb, mrb_value klass)
     mrb_value __ffi_type;
     mrb_get_args(mrb, "A", &elements_mrb);
 
-    tm_type = mrb_malloc(mrb, sizeof(ffi_type));
+    tm_type = (ffi_type*)mrb_malloc(mrb, sizeof(ffi_type));
     tm_type->type = FFI_TYPE_STRUCT;
     tm_type->size = tm_type->alignment = 0;
 
-    tm_type_elements = mrb_malloc(mrb, sizeof(ffi_type*) * (RARRAY_LEN(elements_mrb) + 1));
+    tm_type_elements = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * (RARRAY_LEN(elements_mrb) + 1));
     for(i = 0; i < RARRAY_LEN(elements_mrb); ++i) {
         tm_type_elements[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(RARRAY_PTR(elements_mrb)[i]))->ffi_type_value;
     }
     tm_type_elements[i] = NULL;
     tm_type->elements = tm_type_elements;
 
-    mft = mrb_malloc(mrb, sizeof(struct mrb_ffi_type));
+    mft = (struct mrb_ffi_type*)mrb_malloc(mrb, sizeof(struct mrb_ffi_type));
     mft->name = mrb_class_name(mrb, mrb_class_ptr(klass));
     mft->ffi_type_value = tm_type;
     mft->mrb_to_c = &cfunc_type_ffi_struct_mrb_to_c;

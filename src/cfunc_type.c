@@ -75,7 +75,7 @@ static mrb_value
 cfunc_type_class_refer(mrb_state *mrb, mrb_value klass)
 {
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_type_data *data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+    struct cfunc_type_data *data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
     mrb_value pointer;
     struct RObject *obj;
     data->autofree = false;
@@ -97,9 +97,9 @@ cfunc_type_initialize(mrb_state *mrb, mrb_value self)
     struct cfunc_type_data *data;
     mrb_value val;
     int argc;
-    data = mrb_data_check_get_ptr(mrb, self, &cfunc_type_data);
+    data = (struct cfunc_type_data*)mrb_data_check_get_ptr(mrb, self, &cfunc_type_data);
     if (!data) {
-        data = mrb_malloc(mrb, sizeof(struct cfunc_type_data));
+        data = (struct cfunc_type_data*)mrb_malloc(mrb, sizeof(struct cfunc_type_data));
         data->value._uint64 = 0;
     }
     data->autofree = false;

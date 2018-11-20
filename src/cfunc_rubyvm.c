@@ -64,7 +64,7 @@ struct queue_task {
 
 struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
 {
-    struct task_arg *arg = mrb_malloc(mrb, sizeof(struct task_arg));
+    struct task_arg *arg = (struct task_arg*)mrb_malloc(mrb, sizeof(struct task_arg));
 
     arg->tt = mrb_type(v);
     switch (mrb_type(v)) {
@@ -83,7 +83,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
             mrb_int len;
             const char* name = mrb_sym2name_len(mrb, v.value.sym, &len);
             arg->value.string.len = len;
-            arg->value.string.ptr = mrb_malloc(mrb, len + 1);
+            arg->value.string.ptr = (char*)mrb_malloc(mrb, len + 1);
             memcpy(arg->value.string.ptr, name, len + 1);
         }
         break;
@@ -91,7 +91,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
     case MRB_TT_STRING:
         {
             arg->value.string.len = RSTRING_LEN(v);
-            arg->value.string.ptr = mrb_malloc(mrb, arg->value.string.len+1);
+            arg->value.string.ptr = (char*)mrb_malloc(mrb, arg->value.string.len+1);
             memcpy(arg->value.string.ptr, RSTRING_PTR(v), arg->value.string.len+1);
         }
         break;
@@ -221,7 +221,7 @@ cfunc_rubyvm_data_destructor(mrb_state *mrb, void *p)
     pthread_cancel(vm->thread);
 
     while (vm->queue->length != 0) {
-        struct queue_task *task = vector_dequeue(vm->queue);
+        struct queue_task *task = (struct queue_task*)vector_dequeue(vm->queue);
         free_queue_task(mrb, task);
     }
     destroy_vector(vm->queue);
@@ -256,7 +256,7 @@ const struct mrb_data_type cfunc_rubyvm_task_data_type = {
 void*
 cfunc_rubyvm_open(void *args)
 {
-    struct cfunc_rubyvm_data *data = args;
+    struct cfunc_rubyvm_data *data = (struct cfunc_rubyvm_data*)args;
     mrb_state *mrb = mrb_open();
     mrb_irep* irep;
     data->state = mrb;
@@ -288,7 +288,7 @@ cfunc_rubyvm_open(void *args)
             pthread_cond_wait(&data->queue_cond, &data->queue_mutex);
         }
         
-        task = vector_dequeue(data->queue);
+        task = (struct queue_task*)vector_dequeue(data->queue);
         task->status = queue_task_running;
         taskname = mrb_intern_cstr(mrb, task->name);
 
@@ -316,7 +316,7 @@ cfunc_rubyvm_open(void *args)
 mrb_value
 cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 {
-    struct cfunc_rubyvm_data *data = mrb_data_check_get_ptr(mrb, self, &cfunc_rubyvm_data_type);
+    struct cfunc_rubyvm_data *data = (struct cfunc_rubyvm_data*)mrb_data_check_get_ptr(mrb, self, &cfunc_rubyvm_data_type);
 
     mrb_value name_obj, *args;
     mrb_int args_len;
@@ -327,7 +327,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
     struct cfunc_state *state;
     mrb_get_args(mrb, "o*", &name_obj, &args, &args_len);
 
-    task = mrb_malloc(mrb, sizeof(struct queue_task));
+    task = (struct queue_task*)mrb_malloc(mrb, sizeof(struct queue_task));
     task->refcount = 2;
     task->result = NULL;
     task->status = queue_task_queued;
@@ -337,7 +337,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 
     name = mrb_str_to_cstr(mrb, mrb_str_to_str(mrb, name_obj));
     name_len = strlen(name);
-    task->name = mrb_malloc(mrb, name_len+1);
+    task->name = (char*)mrb_malloc(mrb, name_len+1);
     strncpy(task->name, name, name_len+1);
 
     task->args_len = args_len;
@@ -359,7 +359,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_rubyvm_task_status(mrb_state *mrb, mrb_value self)
 {
-    struct queue_task *task = DATA_PTR(self);
+    struct queue_task *task = (struct queue_task*)DATA_PTR(self);
     return mrb_fixnum_value(task->status);
 }
 
@@ -367,7 +367,7 @@ cfunc_rubyvm_task_status(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_rubyvm_task_result(mrb_state *mrb, mrb_value self)
 {
-    struct queue_task *task = DATA_PTR(self);
+    struct queue_task *task = (struct queue_task*)DATA_PTR(self);
     return task_arg_to_mrb_value(mrb, task->result);
 }
 
@@ -375,7 +375,7 @@ cfunc_rubyvm_task_result(mrb_state *mrb, mrb_value self)
 mrb_value
 cfunc_rubyvm_task_wait(mrb_state *mrb, mrb_value self)
 {
-    struct queue_task *task = DATA_PTR(self);
+    struct queue_task *task = (struct queue_task*)DATA_PTR(self);
     if(task->status == queue_task_queued || task->status == queue_task_running) {
         pthread_mutex_lock(&task->sync_mutex);
         pthread_cond_wait(&task->sync_cond, &task->sync_mutex);
@@ -391,7 +391,7 @@ cfunc_rubyvm_class_thread(mrb_state *mrb, mrb_value klass)
 {
     // init bindle data with RubyVM object
     struct RClass *c = mrb_class_ptr(klass);
-    struct cfunc_rubyvm_data *data = mrb_malloc(mrb, sizeof(struct cfunc_rubyvm_data));
+    struct cfunc_rubyvm_data *data = (struct cfunc_rubyvm_data*)mrb_malloc(mrb, sizeof(struct cfunc_rubyvm_data));
     mrb_value self = mrb_obj_value((struct RObject *)Data_Wrap_Struct(mrb, c, &cfunc_rubyvm_data_type, data));
     void *dlh;
 
