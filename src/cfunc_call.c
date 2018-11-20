@@ -63,7 +63,10 @@ cfunc_call(mrb_state *mrb, mrb_value self)
 
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
 
-    if(mrb_string_p(mname) || mrb_symbol_p(mname)) {
+    if (mrb_symbol_p(mname)) {
+        mname = mrb_str_to_str(mrb, mname);
+    }
+    if(mrb_string_p(mname)) {
 #ifndef _WIN32
         void *dlh = dlopen(NULL, RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
@@ -154,7 +157,10 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
 
     mrb_get_args(mrb, "oSo*", &mresult_type, &mlib, &mname, &margs, &margc);
 
-    if((mrb_string_p(mname) || mrb_symbol_p(mname))) {
+    if (mrb_symbol_p(mname)) {
+        mname = mrb_str_to_str(mrb, mname);
+    }
+    if(mrb_string_p(mname)) {
         void *dlh = dlopen(mrb_string_value_ptr(mrb, mlib), RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
         dlclose(dlh);
