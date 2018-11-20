@@ -12,4 +12,5 @@ mrb_mruby_cfunc_gem_test(mrb_state *mrb)
     uint8_t const *ptr;
     test_func_ref();
     ptr = mruby_data__rubyvm1;
+    (void)ptr;
 }
