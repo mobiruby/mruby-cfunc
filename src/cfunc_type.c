@@ -598,10 +598,10 @@ cfunc_type_ffi_##name##_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_
 { \
     .name = #name_, \
     .ffi_type_value = &ffi_type_##type_, \
-    .mrb_to_c = &cfunc_type_ffi_##type_##_mrb_to_c, \
-    .c_to_mrb = &cfunc_type_ffi_##type_##_c_to_mrb, \
+    .data_to_mrb = &cfunc_type_ffi_##type_##_data_to_mrb, \
     .mrb_to_data = &cfunc_type_ffi_##type_##_mrb_to_data, \
-    .data_to_mrb = &cfunc_type_ffi_##type_##_data_to_mrb \
+    .c_to_mrb = &cfunc_type_ffi_##type_##_c_to_mrb, \
+    .mrb_to_c = &cfunc_type_ffi_##type_##_mrb_to_c \
 }
 
 define_cfunc_type(sint8, &ffi_type_sint8, int8_t, int64_to_mrb, mrb_to_int64)

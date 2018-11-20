@@ -192,10 +192,10 @@ cfunc_closure_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data 
 static struct mrb_ffi_type closure_mrb_ffi_type = {
     .name = "Closure",
     .ffi_type_value = &ffi_type_pointer,
-    .mrb_to_c = &cfunc_closure_mrb_to_c,
-    .c_to_mrb = &cfunc_closure_c_to_mrb,
+    .data_to_mrb = &cfunc_closure_data_to_mrb,
     .mrb_to_data = &cfunc_closure_mrb_to_data,
-    .data_to_mrb = &cfunc_closure_data_to_mrb
+    .c_to_mrb = &cfunc_closure_c_to_mrb,
+    .mrb_to_c = &cfunc_closure_mrb_to_c
 };
 
 

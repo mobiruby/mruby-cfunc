@@ -315,10 +315,10 @@ const struct mrb_data_type cfunc_pointer_ffi_data_type = {
 static struct mrb_ffi_type pointer_mrb_ffi_type = {
     .name = "Pointer",
     .ffi_type_value = &ffi_type_pointer,
-    .mrb_to_c = &cfunc_pointer_mrb_to_c,
-    .c_to_mrb = &cfunc_pointer_c_to_mrb,
+    .data_to_mrb = &cfunc_pointer_data_to_mrb,
     .mrb_to_data = &cfunc_pointer_mrb_to_data,
-    .data_to_mrb = &cfunc_pointer_data_to_mrb
+    .c_to_mrb = &cfunc_pointer_c_to_mrb,
+    .mrb_to_c = &cfunc_pointer_mrb_to_c
 };
 
 
