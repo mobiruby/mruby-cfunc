@@ -146,7 +146,7 @@ void destroy_vector(vector_p vec){
 }
 
 
-void vector_swap(vector_p vec, int i, int j){
+void vector_swap(vector_p vec, size_t i, size_t j){
 	void * temp;
 	
 	if(i >= vec->length || j >= vec->length)
