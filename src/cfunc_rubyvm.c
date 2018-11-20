@@ -41,13 +41,15 @@ struct task_arg {
 };
 
 
+enum queue_task_status {
+    queue_task_queued,
+    queue_task_running,
+    queue_task_finished
+};
+
 struct queue_task {
     char* name;
-    enum queue_task_status {
-        queue_task_queued,
-        queue_task_running,
-        queue_task_finished
-    } status;
+    enum queue_task_status status;
 
     struct task_arg **args;
     int args_len;
