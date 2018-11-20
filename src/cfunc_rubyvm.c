@@ -102,7 +102,7 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
         {
             int i;
             arg->value.array.len = RARRAY_LEN(v);
-            arg->value.array.ptr = mrb_malloc(mrb, RARRAY_LEN(v) * sizeof(struct task_arg));
+            arg->value.array.ptr = (struct task_arg**)mrb_malloc(mrb, RARRAY_LEN(v) * sizeof(struct task_arg*));
 
             for(i=0; i<RARRAY_LEN(v); i++) {
                 arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, RARRAY_PTR(v)[i]);
@@ -295,7 +295,7 @@ cfunc_rubyvm_open(void *args)
         taskname = mrb_intern_cstr(mrb, task->name);
 
         args_len = task->args_len;
-        args = mrb_malloc(mrb, sizeof(struct task_arg) * task->args_len);
+        args = (mrb_value*)mrb_malloc(mrb, sizeof(mrb_value) * task->args_len);
         for(i=0; i<task->args_len; ++i) {
             args[i] = task_arg_to_mrb_value(data->state, task->args[i]);
         }
@@ -343,7 +343,7 @@ cfunc_rubyvm_dispatch(mrb_state *mrb, mrb_value self)
     strncpy(task->name, name, name_len+1);
 
     task->args_len = args_len;
-    task->args = mrb_malloc(mrb, sizeof(struct task_arg) * task->args_len);
+    task->args = (struct task_arg**)mrb_malloc(mrb, sizeof(struct task_arg*) * task->args_len);
     for(i=0; i<args_len; ++i) {
         task->args[i] = mrb_value_to_task_arg(mrb, args[i]);
     }
