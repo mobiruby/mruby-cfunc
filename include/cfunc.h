@@ -33,7 +33,7 @@
 #include "mruby/value.h"
 
 struct cfunc_state {
-    struct RClass *namespace;
+    struct RClass *ns;
     
     struct RClass *type_class;
     struct RClass *void_class;
