@@ -29,7 +29,7 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
     end
   end
 
-  def spec.download_libffi(libffi_version = '3.0.13', tar = 'tar')
+  def spec.download_libffi(libffi_version = '3.3', tar = 'tar')
     libffi_url = "ftp://sourceware.org/pub/libffi/libffi-#{libffi_version}.tar.gz"
     libffi_build_root = "#{MRUBY_ROOT}/build/libffi/#{build.name}"
     libffi_dir = "#{libffi_build_root}/libffi-#{libffi_version}"
@@ -37,16 +37,18 @@ MRuby::Gem::Specification.new('mruby-cfunc') do |spec|
 
     unless File.exists?(libffi_a)
       puts "Downloading #{libffi_url}"
-      open(libffi_url, 'r') do |ftp|
+      URI.open(libffi_url, 'rb') do |ftp|
         libffi_tar = ftp.read
         puts "Extracting"
         FileUtils.mkdir_p libffi_build_root
-        IO.popen("#{tar} xfz - -C #{filename libffi_build_root}", 'w') do |f|
+        IO.popen("#{tar} xfz - -C #{filename libffi_build_root}", 'wb') do |f|
           f.write libffi_tar
         end
         puts "Done"
       end
-      sh %Q{(cd #{filename libffi_dir} && CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\','\\\\').gsub('"', '\\"')}" ./configure --prefix=`pwd` && make clean install)}
+      Dir.chdir(filename libffi_dir) do
+        sh %Q{env CC=#{build.cc.command} CFLAGS="#{build.cc.all_flags.gsub('\\', '\\\\').gsub('"', '\\"')}" ./configure --prefix="#{Dir.pwd}" && make clean install}
+      end
     end
     
     self.linker.library_paths << File.dirname(libffi_a)
