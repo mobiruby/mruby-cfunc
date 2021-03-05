@@ -269,7 +269,7 @@ cfunc_rubyvm_open(void *args)
 
     irep = mrb_read_irep(mrb, data->mrb_data);
 
-    mrb_run(mrb, mrb_proc_new(mrb, irep), mrb_top_self(mrb));
+    mrb_top_run(mrb, mrb_proc_new(mrb, irep), mrb_top_self(mrb), 0);
 
     mrb_irep_decref(mrb, irep);
 
