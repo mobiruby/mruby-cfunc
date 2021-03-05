@@ -45,22 +45,23 @@ void
 mrb_mruby_cfunc_gem_init(mrb_state* mrb)
 {
     struct RClass *ns = mrb_define_module(mrb, "CFunc");
-    struct cfunc_state *state = mrb_malloc(mrb, sizeof(struct cfunc_state));
+    struct cfunc_state *state = (struct cfunc_state*)mrb_malloc(mrb, sizeof(struct cfunc_state));
+    int ai;
     set_cfunc_state(mrb, ns, state);
-    state->namespace = ns;
+    state->ns = ns;
 
-	int ai = mrb_gc_arena_save(mrb);
+    ai = mrb_gc_arena_save(mrb);
     init_cfunc_type(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_pointer(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_struct(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_closure(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_call(mrb, ns); mrb_gc_arena_restore(mrb, ai);
     init_cfunc_rubyvm(mrb, ns); mrb_gc_arena_restore(mrb, ai);
-	init_cfunc_platform(mrb, ns); mrb_gc_arena_restore(mrb, ai);
+    init_cfunc_platform(mrb, ns); mrb_gc_arena_restore(mrb, ai);
 
-    mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, ARGS_NONE());
-    mrb_define_class_method(mrb, ns, "errno", cfunc_errno, ARGS_NONE());
-    mrb_define_class_method(mrb, ns, "strerror", cfunc_strerror, ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "mrb_state", cfunc_mrb_state, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "errno", cfunc_errno, MRB_ARGS_NONE());
+    mrb_define_class_method(mrb, ns, "strerror", cfunc_strerror, MRB_ARGS_NONE());
 }
 
 void

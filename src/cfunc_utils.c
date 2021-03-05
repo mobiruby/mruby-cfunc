@@ -25,5 +25,5 @@ cfunc_mrb_raise_without_jump(mrb_state *mrb, struct RClass *c, const char *fmt, 
     if (n < 0) {
       n = 0;
     }
-    mrb->exc = (struct RObject*)mrb_object(mrb_exc_new(mrb, c, buf, n));
+    mrb->exc = mrb_obj_ptr(mrb_exc_new(mrb, c, buf, n));
 }

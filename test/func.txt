@@ -1,0 +1,8 @@
+{
+  cfunc_test_func1;
+  cfunc_test_func2;
+  cfunc_test_func3;
+  cfunc_test_func4;
+  check_offset5;
+  mruby_data__rubyvm1;
+};

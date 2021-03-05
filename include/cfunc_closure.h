@@ -29,6 +29,8 @@ struct cfunc_closure_data {
     mrb_value return_type;
 
     void *closure_pointer;
+
+    int packed_args_size;
 };
 
 #define cfunc_closure_data_pointer(mrb, val) \

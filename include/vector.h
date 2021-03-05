@@ -101,7 +101,7 @@ void check_length(vector_p vec);
 /* Destroy the vector and free all the memory associated with it. */
 void destroy_vector(vector_p vec);
 /* Swaps the pointers at indices i and j in the vector */
-void vector_swap(vector_p vec, int i, int j);
+void vector_swap(vector_p vec, size_t i, size_t j);
 
 
 void vector_enqueue(vector_p vec, void* data);

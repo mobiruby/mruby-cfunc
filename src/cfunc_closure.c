@@ -25,7 +25,8 @@
 static void
 cfunc_closure_destructor(mrb_state *mrb, void *p_)
 {
-    struct cfunc_closure_data *p = p_;
+    struct cfunc_closure_data *p = (struct cfunc_closure_data*)p_;
+
     if (p->closure) {
         ffi_closure_free(p->closure);
     }
@@ -55,9 +56,14 @@ mrb_value
 cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
 {
     struct cfunc_closure_data *data;
-    data = mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
+    mrb_value rettype_mrb, block, args_mrb;
+    ffi_type *return_ffi_type;
+    int i;
+    void *closure_pointer = NULL;
+
+    data = (struct cfunc_closure_data*)mrb_data_check_get_ptr(mrb, self, &cfunc_closure_data_type);
     if (!data) {
-        data = mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
+        data = (struct cfunc_closure_data*)mrb_malloc(mrb, sizeof(struct cfunc_closure_data));
     }
     data->refer = 0;
     data->autofree = 0;
@@ -67,31 +73,29 @@ cfunc_closure_initialize(mrb_state *mrb, mrb_value self)
     data->mrb = mrb;
     data->closure = NULL;
     data->arg_types = NULL;
+    data->packed_args_size = -1;
     
-    mrb_value rettype_mrb, block, args_mrb;
     mrb_get_args(mrb, "&oo", &block, &rettype_mrb, &args_mrb);
     data->argc = RARRAY_LEN(args_mrb);
     
-    ffi_type *return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
+    return_ffi_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(rettype_mrb))->ffi_type_value;
     data->return_type = rettype_mrb;
 
-    data->arg_ffi_types = mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
-    data->arg_types = mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
-    int i;
+    data->arg_ffi_types = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * data->argc);
+    data->arg_types = (mrb_value*)mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     for (i = 0; i < data->argc; ++i) {
         data->arg_types[i] = mrb_ary_ref(mrb, args_mrb, i);
         data->arg_ffi_types[i] = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(data->arg_types[i]))->ffi_type_value;
     }
     
-    mrb_iv_set(mrb, self, mrb_intern_cstr(data->mrb, "@block"), block);
+    mrb_iv_set(mrb, self, mrb_intern_lit(data->mrb, "@block"), block);
 
-    void *closure_pointer = NULL;
-    data->closure = ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
-    data->cif = mrb_malloc(mrb, sizeof(ffi_cif));
+    data->closure = (ffi_closure*)ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), &closure_pointer);
+    data->cif = (ffi_cif*)mrb_malloc(mrb, sizeof(ffi_cif));
     
     if (data->closure) {
         if (ffi_prep_cif(data->cif, FFI_DEFAULT_ABI, data->argc, return_ffi_type, data->arg_ffi_types) == FFI_OK) {
-            if (ffi_prep_closure_loc(data->closure, data->cif, cfunc_closure_call_binding, mrb_object(self), closure_pointer) == FFI_OK) {
+            if (ffi_prep_closure_loc(data->closure, data->cif, cfunc_closure_call_binding, mrb_ptr(self), closure_pointer) == FFI_OK) {
                 set_cfunc_pointer_data((struct cfunc_type_data *)data, closure_pointer);
                 return self;
             }
@@ -107,28 +111,46 @@ void
 cfunc_closure_call_binding(ffi_cif *cif, void *ret, void **args, void *self_)
 {
     mrb_value self = mrb_obj_value(self_);
-    struct cfunc_closure_data *data = DATA_PTR(self);
+    struct cfunc_closure_data *data = (struct cfunc_closure_data*)DATA_PTR(self);
+    mrb_state *mrb = data->mrb;
 
-    int ai = mrb_gc_arena_save(data->mrb);
+    int ai = mrb_gc_arena_save(mrb);
 
-    mrb_value *ary = mrb_malloc(data->mrb, sizeof(mrb_value) * data->argc);
+    mrb_value *ary = (mrb_value*)mrb_malloc(mrb, sizeof(mrb_value) * data->argc);
     int i;
+    void *packed_args;
+    mrb_value packed_args_value, block, result, ret_pointer;
+    void *p;
+    if (data->packed_args_size == -1) {
+        // calculate packed args size
+        size_t result = 0;
+        for (i = 0; i < data->argc; ++i) {
+            ffi_type const *t = data->arg_ffi_types[i];
+            result += t->size + ((t->alignment - (t->size % t->alignment)) % t->alignment);
+        }
+        data->packed_args_size = result;
+    }
+    packed_args = mrb_malloc(mrb, data->packed_args_size);
+    packed_args_value = cfunc_pointer_new_with_pointer(mrb, packed_args, true);
+    p = packed_args;
     for (i = 0; i < data->argc; ++i) {
-        // TODO: I felt too much consume memory
-        void *p = mrb_malloc(data->mrb, data->arg_ffi_types[i]->size);
-        memcpy(p, args[i], data->arg_ffi_types[i]->size);
-        mrb_value pointer = cfunc_pointer_new_with_pointer(data->mrb, p, true);
-        ary[i] = mrb_funcall(data->mrb, data->arg_types[i], "refer", 1, pointer);
+        ffi_type const *t = data->arg_ffi_types[i];
+        mrb_value pointer;
+        memcpy(p, args[i], t->size);
+        pointer = cfunc_pointer_new_with_pointer(mrb, p, false);
+        mrb_iv_set(mrb, pointer, mrb_intern_lit(mrb, "parent_pointer"), packed_args_value); // for GC
+        p = ((uint8_t*)p) + t->size + ((t->alignment - (t->size % t->alignment)) % t->alignment);
+        ary[i] = mrb_funcall(mrb, data->arg_types[i], "refer", 1, pointer);
     }
 
-    mrb_value block = mrb_iv_get(data->mrb, self, mrb_intern_cstr(data->mrb, "@block"));
-    mrb_value result = mrb_funcall_argv(data->mrb, block, mrb_intern_cstr(data->mrb, "call"), data->argc, ary);
-    mrb_free(data->mrb, ary);
+    block = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@block"));
+    result = mrb_funcall_argv(mrb, block, mrb_intern_lit(mrb, "call"), data->argc, ary);
+    mrb_free(mrb, ary);
 
-    mrb_value ret_pointer = cfunc_pointer_new_with_pointer(data->mrb, ret, false);
-    mrb_funcall(data->mrb, data->return_type, "set", 2, ret_pointer, result);
+    ret_pointer = cfunc_pointer_new_with_pointer(mrb, ret, false);
+    mrb_funcall(mrb, data->return_type, "set", 2, ret_pointer, result);
     
-    mrb_gc_arena_restore(data->mrb, ai);
+    mrb_gc_arena_restore(mrb, ai);
 }
 
 
@@ -170,10 +192,10 @@ cfunc_closure_mrb_to_data(mrb_state *mrb, mrb_value val, struct cfunc_type_data 
 static struct mrb_ffi_type closure_mrb_ffi_type = {
     .name = "Closure",
     .ffi_type_value = &ffi_type_pointer,
-    .mrb_to_c = &cfunc_closure_mrb_to_c,
-    .c_to_mrb = &cfunc_closure_c_to_mrb,
+    .data_to_mrb = &cfunc_closure_data_to_mrb,
     .mrb_to_data = &cfunc_closure_mrb_to_data,
-    .data_to_mrb = &cfunc_closure_data_to_mrb
+    .c_to_mrb = &cfunc_closure_c_to_mrb,
+    .mrb_to_c = &cfunc_closure_mrb_to_c
 };
 
 
@@ -182,10 +204,11 @@ init_cfunc_closure(mrb_state *mrb, struct RClass* module)
 {
     struct cfunc_state *state = cfunc_state(mrb, module);
     struct RClass *closure_class = mrb_define_class_under(mrb, module, "Closure", state->pointer_class);
+    mrb_value ffi_type;
     state->closure_class = closure_class;
 
-    mrb_value ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
-    mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern_cstr(mrb, "@ffi_type"), ffi_type);
+    ffi_type = mrb_obj_value(Data_Wrap_Struct(mrb, mrb->object_class, &cfunc_closure_ffi_type_data_type, &closure_mrb_ffi_type));
+    mrb_obj_iv_set(mrb, (struct RObject*)closure_class, mrb_intern_lit(mrb, "@ffi_type"), ffi_type);
 
-    mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, ARGS_ANY());
+    mrb_define_method(mrb, closure_class, "initialize", cfunc_closure_initialize, MRB_ARGS_ANY());
 }

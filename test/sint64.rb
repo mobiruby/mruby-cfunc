@@ -34,7 +34,7 @@ mobiruby_test "CFunc::SInt64" do
   sint.value = -1 
   assert_equal 0xffffffff, sint.low
   assert_equal 0xffffffff, sint.high
-  assert_equal -1, CFunc::SInt64.get(sint_ptr)
+  assert_equal(-1, CFunc::SInt64.get(sint_ptr))
 
   sint = CFunc::SInt64.new(CFunc::SInt16.new(16))
   assert_equal 16, sint.value

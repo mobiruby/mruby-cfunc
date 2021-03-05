@@ -33,7 +33,7 @@
 #include "mruby/value.h"
 
 struct cfunc_state {
-    struct RClass *namespace;
+    struct RClass *ns;
     
     struct RClass *type_class;
     struct RClass *void_class;
@@ -57,19 +57,20 @@ struct cfunc_state {
 static inline struct cfunc_state *
 cfunc_state(mrb_state *mrb, struct RClass* obj)
 {
+    mrb_value state;
     if(obj == NULL) {
-        obj = (struct RClass*) mrb_object(mrb_vm_const_get(mrb, mrb_intern_cstr(mrb, "CFunc")));
+        obj = mrb_module_get(mrb, "CFunc");
     }
-    mrb_value state = mrb_mod_cv_get(mrb, obj, mrb_intern_cstr(mrb, "cfunc_state"));
-    return (struct cfunc_state *)mrb_voidp(state);
+    state = mrb_mod_cv_get(mrb, obj, mrb_intern_lit(mrb, "cfunc_state"));
+    return (struct cfunc_state *)mrb_cptr(state);
 }
 
 
 static inline void
 set_cfunc_state(mrb_state *mrb, struct RClass* klass, struct cfunc_state *state)
 {
-    mrb_value mstate = mrb_voidp_value(mrb, state);
-    mrb_mod_cv_set(mrb, klass, mrb_intern_cstr(mrb, "cfunc_state"), mstate);
+    mrb_value mstate = mrb_cptr_value(mrb, state);
+    mrb_mod_cv_set(mrb, klass, mrb_intern_lit(mrb, "cfunc_state"), mstate);
 }
 
 #endif

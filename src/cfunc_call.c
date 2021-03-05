@@ -49,25 +49,34 @@ get_proc_address(const char* funcname)
 static mrb_value
 cfunc_call(mrb_state *mrb, mrb_value self)
 {
-    int margc;
+    mrb_int margc;
     mrb_value mresult_type, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
+    void *fp = NULL;
+    mrb_sym sym_to_ffi_value;
+    int i;
+    mrb_value nil_ary[1];
+    ffi_type *result_type;
+    mrb_value mresult = mrb_nil_value();
+    ffi_cif cif;
 
     mrb_get_args(mrb, "oo*", &mresult_type, &mname, &margs, &margc);
 
-    void *fp = NULL;
-    if(mrb_string_p(mname) || mrb_symbol_p(mname)) {
+    if (mrb_symbol_p(mname)) {
+        mname = mrb_str_to_str(mrb, mname);
+    }
+    if(mrb_string_p(mname)) {
 #ifndef _WIN32
         void *dlh = dlopen(NULL, RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
-        dlclose(dlh);
+        // dlclose(dlh);
 #else
         fp = get_proc_address(mrb_string_value_ptr(mrb, mname));
 #endif
 
         if(fp == NULL) {
-            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %S", mname);
             goto cfunc_call_exit;
         }
     }
@@ -79,13 +88,11 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
-    values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
+    args = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = (void**)mrb_malloc(mrb, sizeof(void*) * margc);
+    sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
-    mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
-    int i;
     for(i = 0; i < margc; ++i) {
         if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
@@ -97,14 +104,12 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         }
     }
     
-    ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
+    result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
     if (result_type == NULL) {
         cfunc_mrb_raise_without_jump(mrb, E_ARGUMENT_ERROR, "ignore return type %s", mrb_class_name(mrb, mrb_class_ptr(mresult_type)));
         goto cfunc_call_exit;
     }
     
-    mrb_value mresult = mrb_nil_value();
-    ffi_cif cif;
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {
@@ -116,15 +121,15 @@ cfunc_call(mrb_state *mrb, mrb_value self)
         else {
             result = NULL;
         }
-        ffi_call(&cif, fp, result, values);
-        
+        ffi_call(&cif, (void(*)())fp, result, values);
+
         if(result) {
             mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, true);
             mresult = mrb_funcall(mrb, mresult_type, "refer", 1, result_ptr);
         }
     }
     else {
-        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
+        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %S", mname);
         goto cfunc_call_exit;
     }
 
@@ -138,21 +143,30 @@ cfunc_call_exit:
 static mrb_value
 cfunc_libcall(mrb_state *mrb, mrb_value self)
 {
-    int margc;
+    mrb_int margc;
     mrb_value mresult_type, mlib, mname, *margs;
     void **values = NULL;
     ffi_type **args = NULL;
+    void *fp = NULL;
+    mrb_sym sym_to_ffi_value;
+    mrb_value nil_ary[1];
+    int i;
+    ffi_type *result_type;
+    mrb_value mresult = mrb_nil_value();
+    ffi_cif cif;
 
     mrb_get_args(mrb, "oSo*", &mresult_type, &mlib, &mname, &margs, &margc);
 
-    void *fp = NULL;
-    if((mrb_string_p(mname) || mrb_symbol_p(mname))) {
+    if (mrb_symbol_p(mname)) {
+        mname = mrb_str_to_str(mrb, mname);
+    }
+    if(mrb_string_p(mname)) {
         void *dlh = dlopen(mrb_string_value_ptr(mrb, mlib), RTLD_LAZY);
         fp = dlsym(dlh, mrb_string_value_ptr(mrb, mname));
         dlclose(dlh);
 
         if(fp == NULL) {
-            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %s", mrb_string_value_ptr(mrb, mname));
+            mrb_raisef(mrb, E_NAME_ERROR, "can't find C function %S", mname);
             goto cfunc_call_exit;
         }
     }
@@ -164,13 +178,11 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
 
-    args = mrb_malloc(mrb, sizeof(ffi_type*) * margc);
-    values = mrb_malloc(mrb, sizeof(void*) * margc);
-    mrb_sym sym_to_ffi_value = mrb_intern_cstr(mrb, "to_ffi_value");
+    args = (ffi_type**)mrb_malloc(mrb, sizeof(ffi_type*) * margc);
+    values = (void**)mrb_malloc(mrb, sizeof(void*) * margc);
+    sym_to_ffi_value = mrb_intern_lit(mrb, "to_ffi_value");
 
-    mrb_value nil_ary[1];
     nil_ary[0] = mrb_nil_value();
-    int i;
     for(i = 0; i < margc; ++i) {
         if(mrb_respond_to(mrb, margs[i], sym_to_ffi_value)) {
             args[i] = mrb_value_to_mrb_ffi_type(mrb, margs[i])->ffi_type_value;
@@ -182,14 +194,12 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
 
-    ffi_type *result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
+    result_type = rclass_to_mrb_ffi_type(mrb, mrb_class_ptr(mresult_type))->ffi_type_value;
     if (result_type == NULL) {
         cfunc_mrb_raise_without_jump(mrb, E_ARGUMENT_ERROR, "ignore return type %s", mrb_class_name(mrb, mrb_class_ptr(mresult_type)));
         goto cfunc_call_exit;
     }
 
-    mrb_value mresult = mrb_nil_value();
-    ffi_cif cif;
     if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, margc, result_type, args) == FFI_OK) {
         void *result;
         if(result_type->size > sizeof(long)) {
@@ -201,7 +211,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         else {
             result = NULL;
         }
-        ffi_call(&cif, fp, result, values);
+        ffi_call(&cif, (void(*)())fp, result, values);
 
         if(result) {
             mrb_value result_ptr = cfunc_pointer_new_with_pointer(mrb, result, true);
@@ -209,7 +219,7 @@ cfunc_libcall(mrb_state *mrb, mrb_value self)
         }
     }
     else {
-        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %s", mname);
+        mrb_raisef(mrb, E_NAME_ERROR, "Can't find C function %S", mname);
         goto cfunc_call_exit;
     }
 
@@ -222,6 +232,6 @@ cfunc_call_exit:
 
 void init_cfunc_call(mrb_state *mrb, struct RClass* module)
 {
-    mrb_define_class_method(mrb, module, "call", cfunc_call, ARGS_ANY());
-    mrb_define_module_function(mrb, module, "libcall", cfunc_libcall, ARGS_ANY());
+    mrb_define_class_method(mrb, module, "call", cfunc_call, MRB_ARGS_ANY());
+    mrb_define_module_function(mrb, module, "libcall", cfunc_libcall, MRB_ARGS_ANY());
 }
