@@ -71,49 +71,54 @@ struct task_arg* mrb_value_to_task_arg(mrb_state *mrb, mrb_value v)
     arg->tt = mrb_type(v);
     switch (mrb_type(v)) {
     case MRB_TT_FALSE:
-    case MRB_TT_TRUE:
-    case MRB_TT_FIXNUM:
-        arg->value.i = v.value.i;
+      if (mrb_nil_p(v)) {
+        arg->value.i = 0;
         break;
+      }
+      /* fall through */
+    case MRB_TT_TRUE:
+      arg->value.i = 1;
+      break;
+    case MRB_TT_FIXNUM:
+      arg->value.i = mrb_integer(v);
+      break;
 
     case MRB_TT_FLOAT:
-        arg->value.f = v.value.f;
-        break;
+      arg->value.f = mrb_float(v);
+      break;
 
     case MRB_TT_SYMBOL:
-        {
-            mrb_int len;
-            const char* name = mrb_sym2name_len(mrb, v.value.sym, &len);
-            arg->value.string.len = len;
-            arg->value.string.ptr = (char*)mrb_malloc(mrb, len + 1);
-            memcpy(arg->value.string.ptr, name, len + 1);
-        }
-        break;
+      {
+        mrb_int len;
+        const char* name = mrb_sym_name_len(mrb, mrb_symbol(v), &len);
+        arg->value.string.len = len;
+        arg->value.string.ptr = (char*)mrb_malloc(mrb, len + 1);
+        memcpy(arg->value.string.ptr, name, len + 1);
+      }
+      break;
 
     case MRB_TT_STRING:
-        {
-            arg->value.string.len = RSTRING_LEN(v);
-            arg->value.string.ptr = (char*)mrb_malloc(mrb, arg->value.string.len+1);
-            memcpy(arg->value.string.ptr, RSTRING_PTR(v), arg->value.string.len+1);
-        }
-        break;
+      {
+        arg->value.string.len = RSTRING_LEN(v);
+        arg->value.string.ptr = (char*)mrb_malloc(mrb, arg->value.string.len+1);
+        memcpy(arg->value.string.ptr, RSTRING_PTR(v), arg->value.string.len+1);
+      }
+      break;
 
     case MRB_TT_ARRAY:
-        {
-            int i;
-            arg->value.array.len = RARRAY_LEN(v);
-            arg->value.array.ptr = (struct task_arg**)mrb_malloc(mrb, RARRAY_LEN(v) * sizeof(struct task_arg*));
-
-            for(i=0; i<RARRAY_LEN(v); i++) {
-                arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, RARRAY_PTR(v)[i]);
-            }
+      {
+        arg->value.array.len = RARRAY_LEN(v);
+        arg->value.array.ptr = (struct task_arg**)mrb_malloc(mrb, RARRAY_LEN(v) * sizeof(struct task_arg*));
+        for(int i=0; i<RARRAY_LEN(v); i++) {
+          arg->value.array.ptr[i] = mrb_value_to_task_arg(mrb, RARRAY_PTR(v)[i]);
         }
-        break;
+      }
+      break;
 
     default:
-        mrb_free(mrb, arg);
-        mrb_raise(mrb, E_TYPE_ERROR, "cannot pass to other RubyVM");
-        break;
+      mrb_free(mrb, arg);
+      mrb_raise(mrb, E_TYPE_ERROR, "cannot pass to other RubyVM");
+      break;
     }
 
     return arg;
@@ -124,40 +129,45 @@ mrb_value task_arg_to_mrb_value(mrb_state *mrb, struct task_arg* arg)
 {
     mrb_value v;
 
-    mrb_type(v) = arg->tt;
     switch (arg->tt) {
     case MRB_TT_FALSE:
+      if (arg->value.i == 0)
+        v = mrb_nil_value();
+      else
+        v = mrb_false_value();
+      break;
     case MRB_TT_TRUE:
+      v = mrb_true_value();
+      break;
     case MRB_TT_FIXNUM:
-        v.value.i = arg->value.i;
-        break;
+      v = mrb_int_value(mrb, arg->value.i);
+      break;
 
     case MRB_TT_FLOAT:
-        v.value.f = arg->value.f;
-        break;
+      v = mrb_float_value(mrb, arg->value.i);
+      break;
 
     case MRB_TT_SYMBOL:
-        v.value.sym = mrb_intern_cstr(mrb, arg->value.string.ptr);
-        break;
+      v = mrb_symbol_value(mrb_intern_cstr(mrb, arg->value.string.ptr));
+      break;
 
     case MRB_TT_STRING:
-        v = mrb_str_new(mrb, arg->value.string.ptr, arg->value.string.len);
-        break;
+      v = mrb_str_new(mrb, arg->value.string.ptr, arg->value.string.len);
+      break;
 
     case MRB_TT_ARRAY:
-        {
-            int i;
-            v = mrb_ary_new_capa(mrb, arg->value.array.len);
-            mrb_ary_resize(mrb, v, arg->value.array.len);
-            for(i=0; i<arg->value.array.len; i++) {
-                mrb_ary_set(mrb, v, i, task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]));
-            }
+      {
+        v = mrb_ary_new_capa(mrb, arg->value.array.len);
+        mrb_ary_resize(mrb, v, arg->value.array.len);
+        for(int i=0; i<arg->value.array.len; i++) {
+          mrb_ary_set(mrb, v, i, task_arg_to_mrb_value(mrb, arg->value.array.ptr[i]));
         }
-        break;
+      }
+      break;
 
     default:
-        mrb_raise(mrb, E_TYPE_ERROR, "cannot pass to other RubyVM");
-        break;
+      mrb_raise(mrb, E_TYPE_ERROR, "cannot pass to other RubyVM");
+      break;
     }
 
     return v;
@@ -262,14 +272,14 @@ cfunc_rubyvm_open(void *args)
     mrb_state *mrb = mrb_open();
     mrb_irep* irep;
     data->state = mrb;
-    
+
 #ifdef DISABLE_GEMS
     init_cfunc_module(mrb);
 #endif
 
     irep = mrb_read_irep(mrb, data->mrb_data);
 
-    mrb_top_run(mrb, mrb_proc_new(mrb, irep), mrb_top_self(mrb), 0);
+    mrb_toplevel_run(mrb, mrb_proc_new(mrb, irep));
 
     mrb_irep_decref(mrb, irep);
 
@@ -289,7 +299,7 @@ cfunc_rubyvm_open(void *args)
         while(data->queue->length == 0) {
             pthread_cond_wait(&data->queue_cond, &data->queue_mutex);
         }
-        
+
         task = (struct queue_task*)vector_dequeue(data->queue);
         task->status = queue_task_running;
         taskname = mrb_intern_cstr(mrb, task->name);
